@@ -223,23 +223,21 @@
       <div id="toc" class="toc-list-h1">
           <li>
             <a href="#building-your-own-venmo-with-stellar" class="toc-h1 toc-link" data-title="building-your-own-venmo-with-stellar">Building your own Venmo with Stellar</a>
-              <ul class="toc-list-h2">
-                  <li>
-                    <a href="#introduction" class="toc-h2 toc-link" data-title="introduction">Introduction</a>
-                  </li>
-              </ul>
           </li>
           <li>
-            <a href="#venmo-in-stellar" class="toc-h1 toc-link" data-title="venmo-in-stellar">Venmo in Stellar?</a>
+            <a href="#concepts" class="toc-h1 toc-link" data-title="concepts">Concepts</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#creating-an-anchor" class="toc-h2 toc-link" data-title="creating-an-anchor">Creating an Anchor</a>
+                    <a href="#account" class="toc-h2 toc-link" data-title="account">Account</a>
                   </li>
                   <li>
-                    <a href="#creating-your-own-asset" class="toc-h2 toc-link" data-title="creating-your-own-asset">Creating your own asset</a>
+                    <a href="#anchor" class="toc-h2 toc-link" data-title="anchor">Anchor</a>
                   </li>
                   <li>
-                    <a href="#customer-accounts" class="toc-h2 toc-link" data-title="customer-accounts">Customer accounts</a>
+                    <a href="#assets" class="toc-h2 toc-link" data-title="assets">Assets</a>
+                  </li>
+                  <li>
+                    <a href="#multisignature" class="toc-h2 toc-link" data-title="multisignature">Multisignature</a>
                   </li>
               </ul>
           </li>
@@ -247,16 +245,13 @@
             <a href="#anchor-setup" class="toc-h1 toc-link" data-title="anchor-setup">Anchor Setup</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#multisignature" class="toc-h2 toc-link" data-title="multisignature">Multisignature</a>
+                    <a href="#creating-an-user-account" class="toc-h2 toc-link" data-title="creating-an-user-account">Creating an user account</a>
                   </li>
                   <li>
-                    <a href="#creating-a-stellar-ccount" class="toc-h2 toc-link" data-title="creating-a-stellar-ccount">Creating a Stellar ccount</a>
+                    <a href="#adding-a-trustline" class="toc-h2 toc-link" data-title="adding-a-trustline">Adding a trustline</a>
                   </li>
                   <li>
-                    <a href="#setting-up-multisignature-for-an-user-account" class="toc-h2 toc-link" data-title="setting-up-multisignature-for-an-user-account">Setting up multisignature for an user account</a>
-                  </li>
-                  <li>
-                    <a href="#trustlines-and-asset-holding-authorization" class="toc-h2 toc-link" data-title="trustlines-and-asset-holding-authorization">Trustlines and asset holding authorization</a>
+                    <a href="#setting-up-multisignature" class="toc-h2 toc-link" data-title="setting-up-multisignature">Setting up multisignature</a>
                   </li>
               </ul>
           </li>
@@ -299,22 +294,53 @@
           </li>
       </div>
         <ul class="toc-footer">
-            <li><a href='#'>Sign Up for a Developer Key</a></li>
+            <li><a href='https://twitter.com/abuiles'>Follow me on on Twitter @abuiles</a></li>
             <li><a href='https://github.com/lord/slate'>Documentation Powered by Slate</a></li>
         </ul>
     </div>
     <div class="page-wrapper">
       <div class="dark-box"></div>
       <div class="content">
-        <h1 id='building-your-own-venmo-with-stellar'>Building your own Venmo with Stellar</h1><h2 id='introduction'>Introduction</h2>
-<p>Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.</p>
+        <h1 id='building-your-own-venmo-with-stellar'>Building your own Venmo with Stellar</h1>
+<p>Welcome to building your own Venmo with Stellar. This guide will show you how to create a product &quot;similar&quot; to Venmo using Stellar.</p>
 
-<p>We have language bindings in Shell, Ruby, and Python! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.</p>
+<blockquote>
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/2B1011461n3o0x1n0143/Image%202018-06-12%20at%209.19.12%20PM.png?X-CloudApp-Visitor-Id=49274&amp;v=204e84f5" alt="TODO: putting this here as placeholder - Kena we need to replace this one" /></p>
+</blockquote>
 
-<p>This example API documentation page was created with <a href="https://github.com/lord/slate">Slate</a>. Feel free to edit it and use it as a base for your own API&#39;s documentation.</p>
-<h1 id='venmo-in-stellar'>Venmo in Stellar?</h1>
+<p>In the Stellar universe, an entity like Venmo is called an Anchor.</p>
+
+<aside class="notice">
+Anchors are entities that people trust to hold their deposits and issue credits into the Stellar network for those deposits.
+</aside>
+
+<p>The <a href="https://www.stellar.org/developers/guides/anchor/index.html#customer-accounts">official documentation</a> to create an anchor suggests two ways to maintain customers
+accounts:</p>
+
+<ol>
+<li>Maintain a Stellar account for each customer</li>
+<li>Maintain a single account and use the memo field to identify who is the recipient.</li>
+</ol>
+
+<p>The documentation then expands on the second method without covering the first one.</p>
+
+<p>My goal is to create the missing guide following the first method mantaining a Stellar account for each customer.</p>
+
+<p>I&#39;ll be using Stellar to build a low-cost financial service. Unlike other wallets, I won&#39;t expose to the final user the fact that we are using Stellar.</p>
+
+<p>The following are some of the goals in this tutorial:</p>
+
+<ol>
+<li>The final user will not know about Stellar.</li>
+<li>The final user will not need to store or worry about seed keys.</li>
+<li>The final user will not transact with Lumens.</li>
+<li>The system will use Lumens as &quot;usage tokens&quot;. Each account needs Lumens to be able to use the Stellar ledger.</li>
+<li>The final user will be depositing &quot;fiat&quot; into the financial instituion and getting &quot;fiat&quot; credited in their accounts</li>
+<li>The final user will hold only one asset which represente American Dollars.</li>
+</ol>
+<h1 id='concepts'>Concepts</h1>
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-<h2 id='creating-an-anchor'>Creating an Anchor</h2><h2 id='creating-your-own-asset'>Creating your own asset</h2>
+<h2 id='account'>Account</h2><h2 id='anchor'>Anchor</h2><h2 id='assets'>Assets</h2>
 <blockquote>
 <p>To authorize, use this code:</p>
 </blockquote>
@@ -344,9 +370,9 @@ curl <span class="s2">"api_endpoint_here"</span>
 <aside class="notice">
 You must replace <code>meowmeowmeow</code> with your personal API key.
 </aside>
-<h2 id='customer-accounts'>Customer accounts</h2><h3 id='federation'>Federation</h3><h3 id='using-stellar-as-the-main-ledger'>Using Stellar as the main ledger</h3><h1 id='anchor-setup'>Anchor Setup</h1>
+<h2 id='multisignature'>Multisignature</h2><h1 id='anchor-setup'>Anchor Setup</h1>
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-<h2 id='multisignature'>Multisignature</h2><pre class="highlight ruby tab-ruby"><code><span class="nb">require</span> <span class="s1">'kittn'</span>
+<h2 id='creating-an-user-account'>Creating an user account</h2><pre class="highlight ruby tab-ruby"><code><span class="nb">require</span> <span class="s1">'kittn'</span>
 
 <span class="n">api</span> <span class="o">=</span> <span class="no">Kittn</span><span class="o">::</span><span class="no">APIClient</span><span class="p">.</span><span class="nf">authorize!</span><span class="p">(</span><span class="s1">'meowmeowmeow'</span><span class="p">)</span>
 <span class="n">api</span><span class="p">.</span><span class="nf">kittens</span><span class="p">.</span><span class="nf">get</span>
@@ -407,7 +433,7 @@ You must replace <code>meowmeowmeow</code> with your personal API key.
 <aside class="success">
 Remember — a happy kitten is an authenticated kitten!
 </aside>
-<h2 id='creating-a-stellar-ccount'>Creating a Stellar ccount</h2><pre class="highlight ruby tab-ruby"><code><span class="nb">require</span> <span class="s1">'kittn'</span>
+<h2 id='adding-a-trustline'>Adding a trustline</h2><pre class="highlight ruby tab-ruby"><code><span class="nb">require</span> <span class="s1">'kittn'</span>
 
 <span class="n">api</span> <span class="o">=</span> <span class="no">Kittn</span><span class="o">::</span><span class="no">APIClient</span><span class="p">.</span><span class="nf">authorize!</span><span class="p">(</span><span class="s1">'meowmeowmeow'</span><span class="p">)</span>
 <span class="n">api</span><span class="p">.</span><span class="nf">kittens</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -450,7 +476,7 @@ Remember — a happy kitten is an authenticated kitten!
 <td>The ID of the kitten to retrieve</td>
 </tr>
 </tbody></table>
-<h2 id='setting-up-multisignature-for-an-user-account'>Setting up multisignature for an user account</h2><pre class="highlight ruby tab-ruby"><code><span class="nb">require</span> <span class="s1">'kittn'</span>
+<h2 id='setting-up-multisignature'>Setting up multisignature</h2><pre class="highlight ruby tab-ruby"><code><span class="nb">require</span> <span class="s1">'kittn'</span>
 
 <span class="n">api</span> <span class="o">=</span> <span class="no">Kittn</span><span class="o">::</span><span class="no">APIClient</span><span class="p">.</span><span class="nf">authorize!</span><span class="p">(</span><span class="s1">'meowmeowmeow'</span><span class="p">)</span>
 <span class="n">api</span><span class="p">.</span><span class="nf">kittens</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -478,45 +504,6 @@ Remember — a happy kitten is an authenticated kitten!
 <h3 id='http-request-3'>HTTP Request</h3>
 <p><code>DELETE http://example.com/kittens/&lt;ID&gt;</code></p>
 <h3 id='url-parameters-2'>URL Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>ID</td>
-<td>The ID of the kitten to delete</td>
-</tr>
-</tbody></table>
-<h2 id='trustlines-and-asset-holding-authorization'>Trustlines and asset holding authorization</h2><pre class="highlight ruby tab-ruby"><code><span class="nb">require</span> <span class="s1">'kittn'</span>
-
-<span class="n">api</span> <span class="o">=</span> <span class="no">Kittn</span><span class="o">::</span><span class="no">APIClient</span><span class="p">.</span><span class="nf">authorize!</span><span class="p">(</span><span class="s1">'meowmeowmeow'</span><span class="p">)</span>
-<span class="n">api</span><span class="p">.</span><span class="nf">kittens</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">kittn</span>
-
-<span class="n">api</span> <span class="o">=</span> <span class="n">kittn</span><span class="o">.</span><span class="n">authorize</span><span class="p">(</span><span class="s">'meowmeowmeow'</span><span class="p">)</span>
-<span class="n">api</span><span class="o">.</span><span class="n">kittens</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-</code></pre><pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://example.com/api/kittens/2"</span>
-  -X DELETE
-  -H <span class="s2">"Authorization: meowmeowmeow"</span>
-</code></pre><pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">kittn</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'kittn'</span><span class="p">);</span>
-
-<span class="kd">let</span> <span class="nx">api</span> <span class="o">=</span> <span class="nx">kittn</span><span class="p">.</span><span class="nx">authorize</span><span class="p">(</span><span class="s1">'meowmeowmeow'</span><span class="p">);</span>
-<span class="kd">let</span> <span class="nx">max</span> <span class="o">=</span> <span class="nx">api</span><span class="p">.</span><span class="nx">kittens</span><span class="p">.</span><span class="k">delete</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
-</code></pre>
-<blockquote>
-<p>The above command returns JSON structured like this:</p>
-</blockquote>
-<pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
-  </span><span class="s2">"deleted"</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">":("</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre>
-<p>This endpoint deletes a specific kitten.</p>
-<h3 id='http-request-4'>HTTP Request</h3>
-<p><code>DELETE http://example.com/kittens/&lt;ID&gt;</code></p>
-<h3 id='url-parameters-3'>URL Parameters</h3>
 <table><thead>
 <tr>
 <th>Parameter</th>
