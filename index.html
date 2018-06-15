@@ -228,13 +228,16 @@
             <a href="#concepts" class="toc-h1 toc-link" data-title="concepts">Concepts</a>
               <ul class="toc-list-h2">
                   <li>
+                    <a href="#assets" class="toc-h2 toc-link" data-title="assets">Assets</a>
+                  </li>
+                  <li>
                     <a href="#account" class="toc-h2 toc-link" data-title="account">Account</a>
                   </li>
                   <li>
                     <a href="#anchor" class="toc-h2 toc-link" data-title="anchor">Anchor</a>
                   </li>
                   <li>
-                    <a href="#assets" class="toc-h2 toc-link" data-title="assets">Assets</a>
+                    <a href="#assets-2" class="toc-h2 toc-link" data-title="assets">Assets</a>
                   </li>
                   <li>
                     <a href="#multisignature" class="toc-h2 toc-link" data-title="multisignature">Multisignature</a>
@@ -305,7 +308,7 @@
 <p>Welcome to building your own Venmo with Stellar. This guide will show you how to create a product &quot;similar&quot; to Venmo using Stellar.</p>
 
 <blockquote>
-<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/2B1011461n3o0x1n0143/Image%202018-06-12%20at%209.19.12%20PM.png?X-CloudApp-Visitor-Id=49274&amp;v=204e84f5" alt="TODO: putting this here as placeholder - Kena we need to replace this one" /></p>
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/2B1011461n3o0x1n0143/Image%202018-06-12%20at%209.19.12%20PM.png?X-CloudApp-Visitor-Id=49274&amp;v=204e84f5" alt="Image%202018 06 12%20at%209.19.12%20pm" /></p>
 </blockquote>
 
 <p>In the Stellar universe, an entity like Venmo is called an Anchor.</p>
@@ -318,7 +321,7 @@ Anchors are entities that people trust to hold their deposits and issue credits 
 accounts:</p>
 
 <ol>
-<li>Maintain a Stellar account for each customer</li>
+<li>Maintain a Stellar account for each customer.</li>
 <li>Maintain a single account and use the memo field to identify who is the recipient.</li>
 </ol>
 
@@ -336,11 +339,91 @@ accounts:</p>
 <li>The final user will not transact with Lumens.</li>
 <li>The system will use Lumens as &quot;usage tokens&quot;. Each account needs Lumens to be able to use the Stellar ledger.</li>
 <li>The final user will be depositing &quot;fiat&quot; into the financial instituion and getting &quot;fiat&quot; credited in their accounts</li>
-<li>The final user will hold only one asset which represente American Dollars.</li>
+<li>The final user will hold an asset which represents American Dollars.</li>
 </ol>
 <h1 id='concepts'>Concepts</h1>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-<h2 id='account'>Account</h2><h2 id='anchor'>Anchor</h2><h2 id='assets'>Assets</h2>
+<p>Before getting started I&#39;d like to introduce some important concepts
+in Stellar. Some of them are really well explained in the Stellar
+docs, so I&#39;ll just quote them here and link to the original source.</p>
+<h2 id='assets'>Assets</h2><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GAPNZVXA7ZHZ3NECIFSX5WTW6CRHZ2GEK3ISIYBHBW24POHBEUIZCJOO"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"paging_token"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"account_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GAPNZVXA7ZHZ3NECIFSX5WTW6CRHZ2GEK3ISIYBHBW24POHBEUIZCJOO"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"balances"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0000000"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"limit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"922337203685.4775807"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"credit_alphanum4"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MOBI"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_issuer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GA6HCMBLTZS5VYYBCATRBRZ3BZJMAFUDKYYF6AH6MVCMGWMRDNSWJPIH"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0000000"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"limit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"922337203685.4775807"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"credit_alphanum4"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EURT"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_issuer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GAP5LETOV6YIE62YAM56STDANPRDO7ZFDBGSNHJQIYGGKSMOZAHOOS2S"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0000000"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"limit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"922337203685.4775807"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"credit_alphanum4"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ETH"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_issuer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GBDEVU63Y6NTHJQQZIKVTC23NWLQVP3WJ2RI2OTSJTNYOIGICST6DUXR"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0000000"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"limit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"922337203685.4775807"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"credit_alphanum4"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"USD"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_issuer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GBSTRH4QOTWNSVA6E4HFERETX4ZLSR3CIUBLK7AXYII277PFJC4BBYOG"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"158.7012235"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"asset_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"native"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+<p>The Stellar network allows us to represent any kind of asset. All assets
+in Stellar can be traded and exchanged with each other.</p>
+
+<p>Like other protocols, Stellar has a native asset which is called the
+<code>Lumen</code> represented with the symbol <code>XLM</code>. Accounts can hold
+multiple assets as long as they trust the asset and in some
+cases they have been authorized to hold the asset.</p>
+
+<p>Any account can create their own asset representing traditional or custom assets.</p>
+
+<p>Traditional assets are a cryptographic representation of things like
+fiat, equity, real estate, goats, you name it.</p>
+
+<p>Lumens are an example of a custom asset or token, at they allow us to
+interact with the Stellar network. There are many other types of
+assets built on top of Stellar, one example is the EURT which is a
+representation of the EURO and allow people to do cross-border
+remittances without incurring in high transaction fees. There is also
+MOBI which allow people to use the Mobius network, if you hold MOBI then
+your can interact with the applications in the network.</p>
+
+<p>On there right you can see the JSON representation of a Stellar
+account. Each account has a key called balances, representing the
+assets held by the account.</p>
+
+<p>The account on the right has the following assets:</p>
+
+<ul>
+<li>MOBI: Asset issued by Mobius network</li>
+<li>EURT: Asset issued by Tempo a remittances company</li>
+<li>ETH: This asset represents Ether, issued by http://papaya.io/</li>
+<li>USD: Asset representing Dollar, issued by Stronghold</li>
+<li>native: Native asset of the network, represents Lumens</li>
+</ul>
+
+<p>Assets in Stellar are representet by a combination of <code>code</code> and <code>issuer</code>. It is possible then to find two assets with the code <code>USD</code> representing Dollars but one can be issued by Bank Of America and the other by Venmo.</p>
+
+<p>You can learn more about visiting the Stellar docs <a href="https://www.stellar.org/developers/guides/concepts/assets.html">https://www.stellar.org/developers/guides/concepts/assets.html</a></p>
+<h2 id='account'>Account</h2><h2 id='anchor'>Anchor</h2><h2 id='assets-2'>Assets</h2>
 <blockquote>
 <p>To authorize, use this code:</p>
 </blockquote>
