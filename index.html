@@ -199,6 +199,21 @@
     <link href="stylesheets/screen.css" rel="stylesheet" media="screen" />
     <link href="stylesheets/print.css" rel="stylesheet" media="print" />
       <script src="javascripts/all.js"></script>
+    <script>
+      //This is Google's default GA code
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-32360357-1', 'auto');
+      ga('send', 'pageview');
+      //This does hash-click tracking (inspired by http://stackoverflow.com/a/4813223)
+      $(document).ready(function() {
+      $('.tocify-item a').on('click', function(){
+      ga('send', 'pageview', {'page': location.pathname + location.search  + location.hash});
+      });
+      });
+    </script>
   </head>
 
   <body class="index" data-languages="[&quot;javascript&quot;]">
@@ -241,6 +256,12 @@
           <li>
             <a href="#anchor-setup" class="toc-h1 toc-link" data-title="anchor-setup">Anchor Setup</a>
               <ul class="toc-list-h2">
+                  <li>
+                    <a href="#download-the-app-and-create-an-user" class="toc-h2 toc-link" data-title="download-the-app-and-create-an-user">Download the app and create an user</a>
+                  </li>
+                  <li>
+                    <a href="#go-through-kyc-with-phone-number-email-and-bank-account-verification" class="toc-h2 toc-link" data-title="go-through-kyc-with-phone-number-email-and-bank-account-verification">Go through KYC with phone number, email and bank account verification</a>
+                  </li>
                   <li>
                     <a href="#creating-an-user-account" class="toc-h2 toc-link" data-title="creating-an-user-account">Creating an user account</a>
                   </li>
@@ -292,7 +313,7 @@
       </div>
         <ul class="toc-footer">
             <li><a href='https://twitter.com/abuiles'>Follow me on on Twitter @abuiles</a></li>
-            <li><a href='https://github.com/lord/slate'>Documentation Powerend by Slate</a></li>
+            <li><a href='https://github.com/lord/slate'>Documentation Powered by Slate</a></li>
         </ul>
     </div>
     <div class="page-wrapper">
@@ -359,7 +380,7 @@ transaction.</p>
 also provision other users accounts as they signup for our Venmo
 clone. Although each user will have a Stellar account they won&#39;t know
 about it.</p>
-<h3 id='creating-account-in-the-test-network'>Creating account in the test network</h3><pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">StellarSdk</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'stellar-sdk'</span><span class="p">)</span>
+<h3 id='creating-accounts-in-the-test-network'>Creating accounts in the test network</h3><pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">StellarSdk</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'stellar-sdk'</span><span class="p">)</span>
 <span class="kr">const</span> <span class="nx">fetch</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'node-fetch'</span><span class="p">)</span>
 
 <span class="c1">// Generates a keypair and funds account with friendbot</span>
@@ -378,7 +399,7 @@ about it.</p>
   <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`
     Congrats, you have a Stellar account in the test network!
     seed: </span><span class="p">${</span><span class="nx">pair</span><span class="p">.</span><span class="nx">secret</span><span class="p">()}</span><span class="s2">
-    id: pair.publicKey()
+    id: </span><span class="p">${</span><span class="nx">pair</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">()}</span><span class="s2">
   `</span><span class="p">)</span>
 
   <span class="kr">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s2">`https://horizon-testnet.stellar.org/accounts/</span><span class="p">${</span><span class="nx">pair</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">()}</span><span class="s2">`</span>
@@ -445,7 +466,7 @@ about it.</p>
 in Stellar can be traded and exchanged with each other.</p>
 
 <p>Like other protocols, Stellar has a native asset which is called the
-<code>Lumen</code> represented with the symbol <code>XLM</code>. Accounts can hold
+<code>Lumen</code> represented with the symbol <code>XLM</code>. Stellar accounts can hold
 multiple assets as long as they trust the asset and in some
 cases they have been authorized to hold the asset.</p>
 
@@ -457,10 +478,10 @@ fiat, equity, real estate, goats, you name it.</p>
 <p>Lumens are an example of a custom asset or token, at they allow us to
 interact with the Stellar network. There are many other types of
 assets built on top of Stellar, one example is the <code>EURT</code> which is a
-representation of the <code>EURO</code> and allow people to do cross-border
+representation of the <code>EURO</code> and allows people to do cross-border
 remittances without incurring in high transaction fees. There is also
-<code>MOBI</code> which allow people to use the <code>Mobius network</code>, if you hold <code>MOBI</code> then
-your can interact with the applications in the network.</p>
+<code>MOBI</code> which allows people to use the <code>Mobius network</code>, if you hold <code>MOBI</code> then
+your can interact with the applications in their network.</p>
 
 <p>On the right you can see the JSON representation of a Stellar
 account. Each account has a key called balances, representing the
@@ -471,30 +492,79 @@ assets held by the account.</p>
 <ul>
 <li>MOBI: Asset issued by <a href="https://mobius.network/">Mobius network</a></li>
 <li>EURT: Asset issued by <a href="http://tempo.eu.com/">Tempo</a> a remittances company.</li>
-<li>ETH: This asset represents Ether, you send real <code>ETH</code> to <a href="http://papaya.io/">http://papaya.io/</a> and they credit you with <code>ETH</code> in your Stellar account.</li>
+<li>ETH: This asset represents Ether, you send real <code>ETH</code> to <a href="http://papaya.io/">http://papaya.io/</a> and they credit you with their <code>ETH</code> asset in your Stellar account.</li>
 <li>USD: Asset representing <code>Dollars</code>, issued by <a href="https://stronghold.co/">Stronghold</a>.</li>
 <li>native: Native asset of the network, it represents <code>Lumens</code>.</li>
 </ul>
 
 <p>Assets in Stellar are representet by a combination of <code>code</code> and <code>issuer</code>. It is possible then to find two assets with the code <code>USD</code> representing Dollars but one can be issued by Bank Of America and the other by Venmo.</p>
 
-<p>It&#39;s also possible to find multiple assets with the code <code>BTC</code>, where one
+<p>It is also possible to find multiple assets with the code <code>BTC</code>, where one
 can be backed by <a href="http://papaya.io/">http://papaya.io/</a> and the other
 one from <a href="https://stronghold.co/">StrongHold</a>. It means that at some
 point the issuer (also known as anchor) received <code>BTC</code> in their
 Bitcoin wallets and then credited with their equivalent representation
-of Bitcoin.</p>
+of Bitcoin your Stellar account. If you visit the following site, <a href="https://stellar.expert/explorer/public/asset">https://stellar.expert/explorer/public/asset</a> you&#39;ll find all the assets issued in Stellar.</p>
 
 <p>For this tutorial, I&#39;ll be creating a custom asset in the test network
 (testnet) representing Dollars and I&#39;ll build a way to credit and
 debit accounts as if we were depositing Dollars.</p>
 
-<p>You can learn more about assets visitng <a href="https://www.stellar.org/developers/guides/concepts/assets.html">https://www.stellar.org/developers/guides/concepts/assets.html</a></p>
+<p>You can learn more about assets in the SDF guides: <a href="https://www.stellar.org/developers/guides/concepts/assets.html">https://www.stellar.org/developers/guides/concepts/assets.html</a></p>
 <h2 id='anchor'>Anchor</h2>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<p>At the beginning of this tutorial, I mentioned that an entity like
+Venmo is called an anchor.  Anchors issue assets on top of Stellar and
+then credit those asset to other Stellar accounts. If the anchor
+represents fiat, then it is likely an authorized entity to deal with
+money like banks, savings and credit institutions or a
+remittance company. User deposit fiat to the anchor&#39;s account and they
+credit the user Stellar account with the equivalent balance.</p>
+
+<p>This is how banks or Venmo works but instead of using a public ledger
+like Stellar, they have their own private system and use third parties
+like ACH or SWIFT to move money around.</p>
+
+<p>Anchors can represent also other cryptocurrencies. <a href="https://apay.io/">Papaya</a> is an anchor which includes support for cryptocurrencies like <code>ETH</code>, <code>BTC</code> and others.</p>
+
+<p>If you want to deposit Ether, they give you an Ethereum address. After you deposit Ether to that address they issue the equivalent to your Stellar account. In this case you&#39;ll have to trust Papaya because they&#39;ll be acting as custodian for the Ether you sent them.</p>
+
+<p>For this tutorial, I&#39;ll be creating an anchor which will issue an
+asset representing USD. User will have to download an app, I&#39;ll fake a
+KYC process and then create a Stellar account for the user and
+authorize the user to hold the asset. Once the user have been
+authorized they will be able to deposit USD or debit USD from their accounts.</p>
+
+<p>You can learn more about anchors in the SDF guides: <a href="https://www.stellar.org/developers/guides/anchor/">https://www.stellar.org/developers/guides/anchor/</a></p>
 <h2 id='multisignature'>Multisignature</h2>
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 <h1 id='anchor-setup'>Anchor Setup</h1>
+<p>From this moment, I&#39;ll give a name to this Venmo clone. It would be called: <code>AnchorX</code>.</p>
+
+<p>The following is high level overview of what happens when you want to use Venmo:</p>
+
+<ol>
+<li>Download the app and create an user.</li>
+<li>Go through KYC with phone number, email and bank account verification.</li>
+<li>Once you are authorized to use Venmo, transfer money from your bank account and send it to other Venmo users.</li>
+<li>Transfer to your bank whatever balance you have left.</li>
+</ol>
+
+<p>Let&#39;s translate the steps above to actions in AnchorX and write what happens in Stellar and backend systems.</p>
+
+<ol>
+<li>Download the app and create an user.</li>
+<li>Go through KYC.</li>
+<li>Once you are authorized to use AnchorX, transfer money from your bank account and send it to other AnchorX users.</li>
+<li>Transfer to your bank whatever balance you have left.</li>
+</ol>
+<h3 id='download-the-app-and-create-an-user'>Download the app and create an user</h3>
+<p>There is nothing special here, we just add a new user to our database
+and put it in some kind of pending state for verification.</p>
+<h3 id='go-through-kyc-with-phone-number-email-and-bank-account-verification'>Go through KYC with phone number, email and bank account verification</h3>
+<p>The user is required to confirm their identity before being able to
+use <code>AnchorX</code>. Once the user confirms their identity then they can
+start using the app.</p>
+
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 <h2 id='creating-an-user-account'>Creating an user account</h2><h2 id='adding-a-trustline'>Adding a trustline</h2><h2 id='setting-up-multisignature'>Setting up multisignature</h2><h1 id='building-the-mobile-wallet'>Building the mobile wallet</h1><h2 id='using-the-stellar-sdk-in-react-native'>Using the Stellar-SDK in React-Native</h2>
 <p>Introduce the Stellar-SDK polyfill and how to display an account data in a RN app.</p>
