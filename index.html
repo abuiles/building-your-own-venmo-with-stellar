@@ -207,6 +207,13 @@
 
       ga('create', 'UA-32360357-1', 'auto');
       ga('send', 'pageview');
+      $(document).ready(function() {
+        $('.toc-link').on('click', function(){
+          ga('send', 'pageview', {
+            page: location.pathname + location.search  + location.hash
+          });
+        });
+      });
     </script>
   </head>
 
