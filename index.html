@@ -258,10 +258,19 @@
             <a href="#anchor-setup" class="toc-h1 toc-link" data-title="anchor-setup">Anchor Setup</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#download-the-app-and-create-an-user" class="toc-h2 toc-link" data-title="download-the-app-and-create-an-user">Download the app and create an user</a>
+                    <a href="#download-the-app-and-create-an-user" class="toc-h2 toc-link" data-title="download-the-app-and-create-an-user">Download the app and create an user.</a>
                   </li>
                   <li>
-                    <a href="#go-through-kyc-with-phone-number-email-and-bank-account-verification" class="toc-h2 toc-link" data-title="go-through-kyc-with-phone-number-email-and-bank-account-verification">Go through KYC with phone number, email and bank account verification</a>
+                    <a href="#go-through-kyc" class="toc-h2 toc-link" data-title="go-through-kyc">Go through KYC</a>
+                  </li>
+                  <li>
+                    <a href="#credit-from-bank-account" class="toc-h2 toc-link" data-title="credit-from-bank-account">Credit from bank account</a>
+                  </li>
+                  <li>
+                    <a href="#p2p-payments" class="toc-h2 toc-link" data-title="p2p-payments">P2P payments</a>
+                  </li>
+                  <li>
+                    <a href="#transfer-balance-from-anchorx-to-bank-account" class="toc-h2 toc-link" data-title="transfer-balance-from-anchorx-to-bank-account">Transfer balance from AnchorX to Bank account</a>
                   </li>
                   <li>
                     <a href="#creating-an-user-account" class="toc-h2 toc-link" data-title="creating-an-user-account">Creating an user account</a>
@@ -271,6 +280,23 @@
                   </li>
                   <li>
                     <a href="#setting-up-multisignature" class="toc-h2 toc-link" data-title="setting-up-multisignature">Setting up multisignature</a>
+                  </li>
+              </ul>
+          </li>
+          <li>
+            <a href="#building-the-backend" class="toc-h1 toc-link" data-title="building-the-backend">Building the backend</a>
+              <ul class="toc-list-h2">
+                  <li>
+                    <a href="#create-user-account" class="toc-h2 toc-link" data-title="create-user-account">Create user account</a>
+                  </li>
+                  <li>
+                    <a href="#credit-account" class="toc-h2 toc-link" data-title="credit-account">Credit account</a>
+                  </li>
+                  <li>
+                    <a href="#payments" class="toc-h2 toc-link" data-title="payments">Payments</a>
+                  </li>
+                  <li>
+                    <a href="#debit-account" class="toc-h2 toc-link" data-title="debit-account">Debit account</a>
                   </li>
               </ul>
           </li>
@@ -539,7 +565,7 @@ authorized they will be able to deposit USD or debit USD from their accounts.</p
 <h2 id='multisignature'>Multisignature</h2>
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 <h1 id='anchor-setup'>Anchor Setup</h1>
-<p>From this moment, I&#39;ll give a name to this Venmo clone. It would be called: <code>AnchorX</code>.</p>
+<p>From now on, I&#39;ll call the Venmo clone we are building <code>AnchorX</code>.</p>
 
 <p>The following is high level overview of what happens when you want to use Venmo:</p>
 
@@ -550,24 +576,77 @@ authorized they will be able to deposit USD or debit USD from their accounts.</p
 <li>Transfer to your bank whatever balance you have left.</li>
 </ol>
 
-<p>Let&#39;s translate the steps above to actions in AnchorX and write what happens in Stellar and backend systems.</p>
+<p>Let&#39;s translate the steps above to actions in AnchorX and then identify the requirements to setup the anchor.</p>
+<h3 id='download-the-app-and-create-an-user'>Download the app and create an user.</h3>
+<p>User should be able to download an app and then create an account. To
+keep things simple, I&#39;ll be using React-Native with Expo and then use
+a username (no password) as sign-up method.</p>
+<h3 id='go-through-kyc'>Go through KYC</h3>
+<p>In Venmo there is some level of KYC, since this is a toy example we
+won&#39;t be including any formal KYC process. By default every user will
+be marked as verified. In a real life example, you probably want to
+collect user data like SSN, driver&#39;s license, passport, proof of
+residence, etc.</p>
 
-<ol>
-<li>Download the app and create an user.</li>
-<li>Go through KYC.</li>
-<li>Once you are authorized to use AnchorX, transfer money from your bank account and send it to other AnchorX users.</li>
-<li>Transfer to your bank whatever balance you have left.</li>
-</ol>
-<h3 id='download-the-app-and-create-an-user'>Download the app and create an user</h3>
-<p>There is nothing special here, we just add a new user to our database
-and put it in some kind of pending state for verification.</p>
-<h3 id='go-through-kyc-with-phone-number-email-and-bank-account-verification'>Go through KYC with phone number, email and bank account verification</h3>
-<p>The user is required to confirm their identity before being able to
-use <code>AnchorX</code>. Once the user confirms their identity then they can
-start using the app.</p>
+<p>After an user creates an account with AnchorX, the service will
+automatically provision a Stellar account and authorize the account to
+hold the anchor asset.</p>
 
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-<h2 id='creating-an-user-account'>Creating an user account</h2><h2 id='adding-a-trustline'>Adding a trustline</h2><h2 id='setting-up-multisignature'>Setting up multisignature</h2><h1 id='building-the-mobile-wallet'>Building the mobile wallet</h1><h2 id='using-the-stellar-sdk-in-react-native'>Using the Stellar-SDK in React-Native</h2>
+<p>Stellar accounts can hold any asset, but additionally anchors can
+authorize who is allowed to hold their asset.</p>
+
+<p>When a Stellar accounts decides to trust a given asset, they are
+creating a trustline between the account and the asset. Such operation
+has to be stored in the ledger. The code in the right shows a transaction creating a trustline with an <code>account</code> and an <code>asset</code>.</p>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">asset</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">StellarSdk</span><span class="p">.</span><span class="nx">Asset</span><span class="p">(</span>
+  <span class="s1">'USD'</span><span class="p">,</span>
+  <span class="s1">'issuer-id'</span>
+<span class="p">);</span>
+
+<span class="k">new</span> <span class="nx">StellarSdk</span>
+  <span class="p">.</span><span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">account</span><span class="p">)</span>
+  <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
+    <span class="nx">StellarSdk</span><span class="p">.</span><span class="nx">Operation</span><span class="p">.</span><span class="nx">changeTrust</span><span class="p">({</span>
+      <span class="nx">asset</span>
+    <span class="p">}))</span>
+  <span class="p">.</span><span class="nx">build</span><span class="p">();</span>
+</code></pre>
+<p>Likewise, when the asset issuer requires authorization by them before people can hold their asset. It needs to happen in an operation.
+The code in right shows an operation where the issuing account is authorizing a <code>trustor</code> to hold its asset with code <code>USD</code>.</p>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">trustor</span> <span class="o">=</span> <span class="s1">'some-stellar-address'</span>
+
+<span class="k">new</span> <span class="nx">StellarSdk</span><span class="p">.</span><span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">issuingAccount</span><span class="p">)</span>
+  <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
+    <span class="nx">StellarSdk</span><span class="p">.</span><span class="nx">Operation</span><span class="p">.</span><span class="nx">allowTrust</span><span class="p">({</span>
+      <span class="nx">trustor</span><span class="p">,</span>
+      <span class="na">assetCode</span><span class="p">:</span> <span class="s1">'USD'</span><span class="p">,</span>
+      <span class="na">authorize</span><span class="p">:</span> <span class="kc">true</span>
+    <span class="p">})</span>
+  <span class="p">)</span>
+  <span class="p">.</span><span class="nx">build</span><span class="p">();</span>
+</code></pre>
+<p>For this example, <code>AnchorX</code> will be running both operations to allow account to transact with its asset.</p>
+<h3 id='credit-from-bank-account'>Credit from bank account</h3>
+<p>The app will have a section which will simulate transferring from your bank account.</p>
+<h3 id='p2p-payments'>P2P payments</h3>
+<p>Once the account has been provisioned and have some Dollars, users should be able to send money to other users in AnchorX</p>
+<h3 id='transfer-balance-from-anchorx-to-bank-account'>Transfer balance from AnchorX to Bank account</h3>
+<p>The app will have a section for depositing their dollars to their bank account.</p>
+<h2 id='creating-an-user-account'>Creating an user account</h2><h2 id='adding-a-trustline'>Adding a trustline</h2><h2 id='setting-up-multisignature'>Setting up multisignature</h2><h1 id='building-the-backend'>Building the backend</h1>
+<p>Reference backend in Node.js</p>
+<h2 id='create-user-account'>Create user account</h2>
+<p>API end-point to create user a new user account</p>
+<h3 id='create-stellar-account'>Create Stellar account</h3>
+<p>Implementation of Stellar account provisioning</p>
+<h3 id='create-truslines'>Create truslines</h3>
+<p>Implementation of Stellar trustlines</p>
+<h2 id='credit-account'>Credit account</h2>
+<p>API end-point to &quot;transfer&quot; USD from bank account to Stellar account.</p>
+<h2 id='payments'>Payments</h2>
+<p>API end-point to transfer money from user a to user b</p>
+<h2 id='debit-account'>Debit account</h2>
+<p>API end-point to transfer money from AnchorX to bank account.</p>
+<h1 id='building-the-mobile-wallet'>Building the mobile wallet</h1><h2 id='using-the-stellar-sdk-in-react-native'>Using the Stellar-SDK in React-Native</h2>
 <p>Introduce the Stellar-SDK polyfill and how to display an account data in a RN app.</p>
 <h2 id='creating-an-user-signup-flow'>Creating an user signup flow</h2>
 <p>Very simple user signup flow based in user name. It shows how to setup Stellar account, multisig and trustline schema.</p>
