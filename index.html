@@ -272,22 +272,16 @@
                   <li>
                     <a href="#transfer-balance-from-anchorx-to-bank-account" class="toc-h2 toc-link" data-title="transfer-balance-from-anchorx-to-bank-account">Transfer balance from AnchorX to Bank account</a>
                   </li>
-                  <li>
-                    <a href="#creating-an-user-account" class="toc-h2 toc-link" data-title="creating-an-user-account">Creating an user account</a>
-                  </li>
-                  <li>
-                    <a href="#adding-a-trustline" class="toc-h2 toc-link" data-title="adding-a-trustline">Adding a trustline</a>
-                  </li>
-                  <li>
-                    <a href="#setting-up-multisignature" class="toc-h2 toc-link" data-title="setting-up-multisignature">Setting up multisignature</a>
-                  </li>
               </ul>
           </li>
           <li>
             <a href="#building-the-backend" class="toc-h1 toc-link" data-title="building-the-backend">Building the backend</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#create-user-account" class="toc-h2 toc-link" data-title="create-user-account">Create user account</a>
+                    <a href="#setting-up-the-server" class="toc-h2 toc-link" data-title="setting-up-the-server">Setting up the server</a>
+                  </li>
+                  <li>
+                    <a href="#user" class="toc-h2 toc-link" data-title="user">User</a>
                   </li>
                   <li>
                     <a href="#credit-account" class="toc-h2 toc-link" data-title="credit-account">Credit account</a>
@@ -340,6 +334,7 @@
       </div>
         <ul class="toc-footer">
             <li><a href='https://twitter.com/abuiles'>Follow me on on Twitter @abuiles</a></li>
+            <li><a href='https://github.com/abuiles/building-your-own-venmo-with-stellar/issues'>Report issues</a></li>
             <li><a href='https://github.com/lord/slate'>Documentation Powered by Slate</a></li>
         </ul>
     </div>
@@ -348,40 +343,35 @@
       <div class="content">
         <h1 id='building-your-own-venmo-with-stellar'>Building your own Venmo with Stellar</h1>
 <aside class="notice">
-This is a work in progress!
+Work in progress!
 </aside>
 
-<ul>
-<li>You can report issues in the GitHub repo <a href="https://github.com/abuiles/building-your-own-venmo-with-stellar/issues">cliking here</a></li>
-<li>You support my work sending XLM tips here <code>GBCFAMVYPJTXHVWRFP7VO6F4QE7B4UHAVJOEG5VR6VEB5M67GHQGEEAB</code>.</li>
-</ul>
+<blockquote>
+<p>This is a free tutorial, but I like to drink coffee while I write. You can buy my a coffee with XLM, send a tip here <code>GBCFAMVYPJTXHVWRFP7VO6F4QE7B4UHAVJOEG5VR6VEB5M67GHQGEEAB</code> with the memo <code>coffee</code>.</p>
+</blockquote>
 
 <p>Welcome to building your own Venmo with Stellar. This guide will show
 you how to create a product &quot;similar&quot; to Venmo using Stellar.</p>
 
-<p>In Stellar, an entity like Venmo is called an Anchor.</p>
-
-<p>The <a href="https://www.stellar.org/developers/guides/anchor/index.html#customer-accounts">official documentation</a> to create an anchor suggests two ways to maintain customers accounts:</p>
+<p>In Stellar, an entity like Venmo is called an <code>anchor</code>. When you are building an anchor, there are two suggested ways to build and maintain customer accounts:</p>
 
 <ol>
 <li>Maintain a Stellar account for each customer.</li>
-<li>Maintain a single account and use the memo field to identify who is the recipient.</li>
+<li>Maintain a single Stellar account to transact on behalf of your customers and use the memo field to identify who is the recipient of each transaction.</li>
 </ol>
 
-<p>The documentation then expands on the second method without covering the first one.</p>
+<p>The <a href="https://www.stellar.org/developers/guides/anchor/index.html#customer-accounts">official documentation</a> covers the second method but there is no documentation about the first one.</p>
 
-<p>My goal is to create the missing guide following the first method mantaining a Stellar account for each customer.</p>
-
-<p>I&#39;ll be using Stellar to build a low-cost financial service. Unlike other wallets, I won&#39;t expose to the final user the fact that we are using Stellar.</p>
+<p>In this tutorial you will use Stellar to build a low-cost financial service similar to Venmo and instead of following the approach number two which is already documented in the Stellar website, you&#39;ll be maintaining a Stellar account for each customer and also making it transparant to the final user that they are using Stellar.</p>
 
 <p>The following are some of the goals in this tutorial:</p>
 
 <ol>
-<li>The final user will not know about Stellar.</li>
-<li>The final user will not need to store or worry about seed keys.</li>
-<li>The final user will not transact with Lumens.</li>
+<li>The final user won&#39;t know about Stellar.</li>
+<li>The final user won&#39;t need to store or worry about seed keys.</li>
+<li>The final user won&#39;t transact with Lumens.</li>
 <li>The system will use Lumens as &quot;usage tokens&quot;. Each account needs Lumens to be able to use the Stellar ledger.</li>
-<li>The final user will be depositing &quot;fiat&quot; into the financial instituion and getting &quot;fiat&quot; credited in their accounts</li>
+<li>The final user will be depositing &quot;fiat&quot; into the financial instituion and getting &quot;fiat&quot; credited in their accounts.</li>
 <li>The final user will hold an asset which represents American Dollars.</li>
 <li>All the examples and the wallet will be running in the Stellar testnet.</li>
 </ol>
@@ -390,8 +380,7 @@ you how to create a product &quot;similar&quot; to Venmo using Stellar.</p>
 Anchors are entities that people trust to hold their deposits and issue credits into the Stellar network for those deposits.
 </aside>
 <h1 id='concepts'>Concepts</h1>
-<p>Before getting started I&#39;d like to introduce some important concepts
-in Stellar like account, asset, anchor, multisignature.</p>
+<p>Before getting started you need to learn some concepts in Stellar like account, asset, anchor, multisignature.</p>
 <h2 id='account'>Account</h2>
 <p>The most important unit in Stellar are the accounts. You need to
 create one before interacting with the network. To create an account
@@ -403,9 +392,9 @@ public key is the equivalent of your bank account number and then the
 private key is the password. The private key is required to sign each
 transaction.</p>
 
-<p>For this tutorial, I&#39;ll be using accounts to create new assets and
-also provision other users accounts as they signup for our Venmo
-clone. Although each user will have a Stellar account they won&#39;t know
+<p>For this tutorial, you&#39;ll be using accounts to create new assets and
+also provision other users accounts as they signup for this Venmo
+clone which will be called <code>AnchorX</code>. Although each user will have a Stellar account they won&#39;t know
 about it.</p>
 <h3 id='creating-accounts-in-the-test-network'>Creating accounts in the test network</h3><pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">StellarSdk</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'stellar-sdk'</span><span class="p">)</span>
 <span class="kr">const</span> <span class="nx">fetch</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'node-fetch'</span><span class="p">)</span>
@@ -533,13 +522,13 @@ point the issuer (also known as anchor) received <code>BTC</code> in their
 Bitcoin wallets and then credited with their equivalent representation
 of Bitcoin your Stellar account. If you visit the following site, <a href="https://stellar.expert/explorer/public/asset">https://stellar.expert/explorer/public/asset</a> you&#39;ll find all the assets issued in Stellar.</p>
 
-<p>For this tutorial, I&#39;ll be creating a custom asset in the test network
-(testnet) representing Dollars and I&#39;ll build a way to credit and
+<p>You&#39;ll be creating a custom asset in the test network
+(testnet) representing Dollars and you will build a way to credit and
 debit accounts as if we were depositing Dollars.</p>
 
 <p>You can learn more about assets in the SDF guides: <a href="https://www.stellar.org/developers/guides/concepts/assets.html">https://www.stellar.org/developers/guides/concepts/assets.html</a></p>
 <h2 id='anchor'>Anchor</h2>
-<p>At the beginning of this tutorial, I mentioned that an entity like
+<p>At the beginning of this tutorial, you read that an entity like
 Venmo is called an anchor.  Anchors issue assets on top of Stellar and
 then credit those asset to other Stellar accounts. If the anchor
 represents fiat, then it is likely an authorized entity to deal with
@@ -555,8 +544,8 @@ like ACH or SWIFT to move money around.</p>
 
 <p>If you want to deposit Ether, they give you an Ethereum address. After you deposit Ether to that address they issue the equivalent to your Stellar account. In this case you&#39;ll have to trust Papaya because they&#39;ll be acting as custodian for the Ether you sent them.</p>
 
-<p>For this tutorial, I&#39;ll be creating an anchor which will issue an
-asset representing USD. User will have to download an app, I&#39;ll fake a
+<p>In this tutorial, you will be creating an anchor which will issue an
+asset representing USD. User will have to download an app, you&#39;ll fake a
 KYC process and then create a Stellar account for the user and
 authorize the user to hold the asset. Once the user have been
 authorized they will be able to deposit USD or debit USD from their accounts.</p>
@@ -565,8 +554,6 @@ authorized they will be able to deposit USD or debit USD from their accounts.</p
 <h2 id='multisignature'>Multisignature</h2>
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 <h1 id='anchor-setup'>Anchor Setup</h1>
-<p>From now on, I&#39;ll call the Venmo clone we are building <code>AnchorX</code>.</p>
-
 <p>The following is high level overview of what happens when you want to use Venmo:</p>
 
 <ol>
@@ -578,33 +565,31 @@ authorized they will be able to deposit USD or debit USD from their accounts.</p
 
 <p>Let&#39;s translate the steps above to actions in AnchorX and then identify the requirements to setup the anchor.</p>
 <h3 id='download-the-app-and-create-an-user'>Download the app and create an user.</h3>
-<p>User should be able to download an app and then create an account. To
+<p>Users should be able to download an app and then create an account. To
 keep things simple, I&#39;ll be using React-Native with Expo and then use
 a username (no password) as sign-up method.</p>
 <h3 id='go-through-kyc'>Go through KYC</h3>
 <p>In Venmo there is some level of KYC, since this is a toy example we
 won&#39;t be including any formal KYC process. By default every user will
-be marked as verified. In a real life example, you probably want to
-collect user data like SSN, driver&#39;s license, passport, proof of
-residence, etc.</p>
+be marked as verified. In real life, you probably want to collect user
+data like SSN, driver&#39;s license, passport, proof of residence, etc.</p>
 
 <p>After an user creates an account with AnchorX, the service will
 automatically provision a Stellar account and authorize the account to
-hold the anchor asset.</p>
+hold the anchor&#39;s asset.</p>
 
-<p>Stellar accounts can hold any asset, but additionally anchors can
-authorize who is allowed to hold their asset.</p>
+<p>Stellar accounts can hold any asset, but additionally anchors can authorize who is allowed to hold their asset.</p>
 
 <p>When a Stellar accounts decides to trust a given asset, they are
 creating a trustline between the account and the asset. Such operation
-has to be stored in the ledger. The code in the right shows a transaction creating a trustline with an <code>account</code> and an <code>asset</code>.</p>
+has to be stored in the ledger. The code in the right shows a transaction creating a trustline between an <code>account</code> and an <code>asset</code>.</p>
 <pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">asset</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">StellarSdk</span><span class="p">.</span><span class="nx">Asset</span><span class="p">(</span>
   <span class="s1">'USD'</span><span class="p">,</span>
   <span class="s1">'issuer-id'</span>
 <span class="p">);</span>
 
 <span class="k">new</span> <span class="nx">StellarSdk</span>
-  <span class="p">.</span><span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">account</span><span class="p">)</span>
+  <span class="p">.</span><span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">myAccount</span><span class="p">)</span>
   <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
     <span class="nx">StellarSdk</span><span class="p">.</span><span class="nx">Operation</span><span class="p">.</span><span class="nx">changeTrust</span><span class="p">({</span>
       <span class="nx">asset</span>
@@ -612,7 +597,7 @@ has to be stored in the ledger. The code in the right shows a transaction creati
   <span class="p">.</span><span class="nx">build</span><span class="p">();</span>
 </code></pre>
 <p>Likewise, when the asset issuer requires authorization by them before people can hold their asset. It needs to happen in an operation.
-The code in right shows an operation where the issuing account is authorizing a <code>trustor</code> to hold its asset with code <code>USD</code>.</p>
+The code shows an operation where the issuing account is authorizing a <code>trustor</code> to hold its asset with code <code>USD</code>.</p>
 <pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">trustor</span> <span class="o">=</span> <span class="s1">'some-stellar-address'</span>
 
 <span class="k">new</span> <span class="nx">StellarSdk</span><span class="p">.</span><span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">issuingAccount</span><span class="p">)</span>
@@ -625,20 +610,56 @@ The code in right shows an operation where the issuing account is authorizing a 
   <span class="p">)</span>
   <span class="p">.</span><span class="nx">build</span><span class="p">();</span>
 </code></pre>
-<p>For this example, <code>AnchorX</code> will be running both operations to allow account to transact with its asset.</p>
+<p>For this example, <code>AnchorX</code> will be running both operations to allow accounts to transact with its asset.</p>
 <h3 id='credit-from-bank-account'>Credit from bank account</h3>
 <p>The app will have a section which will simulate transferring from your bank account.</p>
 <h3 id='p2p-payments'>P2P payments</h3>
 <p>Once the account has been provisioned and have some Dollars, users should be able to send money to other users in AnchorX</p>
 <h3 id='transfer-balance-from-anchorx-to-bank-account'>Transfer balance from AnchorX to Bank account</h3>
 <p>The app will have a section for depositing their dollars to their bank account.</p>
-<h2 id='creating-an-user-account'>Creating an user account</h2><h2 id='adding-a-trustline'>Adding a trustline</h2><h2 id='setting-up-multisignature'>Setting up multisignature</h2><h1 id='building-the-backend'>Building the backend</h1>
-<p>Reference backend in Node.js</p>
-<h2 id='create-user-account'>Create user account</h2>
-<p>API end-point to create user a new user account</p>
+<h1 id='building-the-backend'>Building the backend</h1>
+<p>In this section, I&#39;ll be implementing a GraphQL API which will support user sign-up and sign-in, deposits, withdrawals and payments. The mobile application will be interacting with this API.</p>
+
+<p>I&#39;ll be writing the server in <code>TypeScript</code> and using <a href="https://www.prisma.io/">Prisma</a> to generate the user management API.</p>
+<h2 id='setting-up-the-server'>Setting up the server</h2>
+<p>I&#39;m bootstrapping the server using the <a href="https://oss.prisma.io/content/graphql-cli/01-overview">GraphQL CLI</a> and using the <code>TypeScript</code> template. To make things easy I put release which you can use as starting point if you want to follow step by step.</p>
+
+<p>The following pull request contains the boostrapping step <a href="https://github.com/abuiles/anchorx-api/pull/1">https://github.com/abuiles/anchorx-api/pull/1</a>. You can get it by running the following commands:</p>
+
+<ol>
+<li><code>git clone https://github.com/abuiles/anchorx-api</code></li>
+<li><code>cd anchorx-api</code></li>
+<li><code>git checkout v1</code></li>
+</ol>
+
+<p>Next you are going to add the user model.</p>
+<h2 id='user'>User</h2>
+<p>The user model is defined in <code>database/datamodel.graphql</code>. Users in AnchorX signup using their username. After they signup, the service assigns automatically a Stellar account. While we have a Stellar account for each customer, the user will never interact with it. The code on the right represents  the user model.</p>
+<pre class="highlight javascript tab-javascript"><code><span class="nx">type</span> <span class="nx">User</span> <span class="p">{</span>
+  <span class="nl">id</span><span class="p">:</span> <span class="nx">ID</span><span class="o">!</span> <span class="p">@</span><span class="nd">unique</span>
+  <span class="nx">username</span><span class="p">:</span> <span class="nb">String</span><span class="o">!</span> <span class="p">@</span><span class="nd">unique</span>
+  <span class="nx">stellarAccount</span><span class="p">:</span> <span class="nb">String</span><span class="o">!</span>
+  <span class="nx">stellarSeed</span><span class="p">:</span> <span class="nb">String</span><span class="o">!</span>
+<span class="p">}</span>
+</code></pre>
+<p>After adding the user model definition to <code>database/datamodel.graphql</code>, you have to run <code>yarn prisma deploy</code> to create a new table in the database and get the CRUD end-points for users.</p>
+
+<ul>
+<li><code>yarn run prisma deploy</code></li>
+</ul>
+
+<p>The <a href="https://github.com/abuiles/anchorx-api/pull/2">pull request #2</a>, shows the changes added in this step. The important changes are here <a href="https://github.com/abuiles/anchorx-api/pull/2/files#diff-5ca8cc3ddf0d92dda0872ee778220e21">https://github.com/abuiles/anchorx-api/pull/2/files#diff-5ca8cc3ddf0d92dda0872ee778220e21</a> since the rest is code generated by prisma.</p>
+
+<p>After a new user is created, you need to provision a Stellar account. Provisioning a new account requires multiple steps:</p>
+
+<ol>
+<li>You need to create a public and private key pair.</li>
+<li>After the public key has been created, you need to fund that account with some Lumens.</li>
+<li>After the account has been created in the Stellar ledger, you need to create a trustline with the anchor asset.</li>
+</ol>
 <h3 id='create-stellar-account'>Create Stellar account</h3>
 <p>Implementation of Stellar account provisioning</p>
-<h3 id='create-truslines'>Create truslines</h3>
+<h3 id='funding-the-new-account'>Funding the new account</h3><h3 id='creating-trustlines'>Creating trustlines</h3>
 <p>Implementation of Stellar trustlines</p>
 <h2 id='credit-account'>Credit account</h2>
 <p>API end-point to &quot;transfer&quot; USD from bank account to Stellar account.</p>
