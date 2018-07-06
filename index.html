@@ -296,7 +296,7 @@
                     <a href="#testing" class="toc-h2 toc-link" data-title="testing">Testing</a>
                   </li>
                   <li>
-                    <a href="#funding-the-new-account" class="toc-h2 toc-link" data-title="funding-the-new-account">Funding the new account</a>
+                    <a href="#creating-the-account-in-the-stellar-ledger" class="toc-h2 toc-link" data-title="creating-the-account-in-the-stellar-ledger">Creating the account in the Stellar ledger</a>
                   </li>
                   <li>
                     <a href="#creating-trustlines" class="toc-h2 toc-link" data-title="creating-trustlines">Creating trustlines</a>
@@ -813,7 +813,76 @@ For production applications never put any kind of keys in code and use something
 <span class="p">}</span>
 </code></pre>
 <p>You can test the changes made up to this point by running the server. To do so type the command <code>yarn dev</code> in your console and it will bring a GraphQL playground to your browser. You can test the <code>signup mutation</code> by pasting the code in the right and hitting run.</p>
-<h2 id='funding-the-new-account'>Funding the new account</h2><h2 id='creating-trustlines'>Creating trustlines</h2>
+
+<p>AnchorX allows you now to create new users and it assigns a stellar account to each user. However, the Stellar account is not created in the Stellar ledger until it gets funded with some lumens.</p>
+
+<p>The gif below, shows you the process of creating an account and what happens when you try to look at that account on the stellar test network.</p>
+
+<p>The result is a 404 since you never funded the Stellar account.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0D2x0C3Y3i2C0J2q1i1L/Screen%20Recording%202018-06-28%20at%2011.14%20AM.gif?X-CloudApp-Visitor-Id=49274&amp;v=df174936" alt="Screen%20recording%202018 06 28%20at%2011.14%20am" /></p>
+
+<p>To fix this, AnchorX needs to fund each account with enough lumens to
+keep the minimum account balance and then be able to do
+transactions. In the next section you will learn how to create account
+programatically in Stellar without <code>friendbot</code>.</p>
+
+<aside class="notice">
+Lear more about minimum account balance <a href="https://www.stellar.org/developers/guides/concepts/fees.html#minimum-account-balance">here</a>
+</aside>
+<h2 id='creating-the-account-in-the-stellar-ledger'>Creating the account in the Stellar ledger</h2><pre class="highlight javascript tab-javascript"><code><span class="c1">// Classes required to create new account</span>
+<span class="kr">import</span> <span class="p">{</span>
+  <span class="nx">Keypair</span><span class="p">,</span> <span class="c1">// Keypair represents public and secret keys.</span>
+  <span class="nx">Network</span><span class="p">,</span> <span class="c1">// Network provides helper methods to get the passphrase or id for different stellar networks.</span>
+  <span class="nx">Operation</span><span class="p">,</span> <span class="c1">// Operation helps you represent/build operations in Stellar network.</span>
+  <span class="nx">Server</span><span class="p">,</span> <span class="c1">// Server handles the network connections.</span>
+  <span class="nx">TransactionBuilder</span> <span class="c1">// Helps you construct transactions.</span>
+<span class="p">}</span> <span class="nx">from</span> <span class="s1">'stellar-sdk'</span>
+
+<span class="k">try</span> <span class="p">{</span>
+  <span class="c1">// Tell the Stellar SDK you are using the testnet</span>
+  <span class="nx">Network</span><span class="p">.</span><span class="nx">useTestNetwork</span><span class="p">();</span>
+  <span class="c1">// point to testnet host</span>
+  <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">);</span>
+
+  <span class="c1">// Never put values like the an account seed in code.</span>
+  <span class="kr">const</span> <span class="nx">provisionerKeyPair</span> <span class="o">=</span> <span class="nx">Keypair</span><span class="p">.</span><span class="nx">fromSecret</span><span class="p">(</span><span class="s1">'SA72TGXRHE26WC5G5MTNURFUFBHZHTIQKF5AQWRXJMJGZUF4XY6HFWJ4'</span><span class="p">)</span>
+
+  <span class="c1">// Load account from Stellar</span>
+  <span class="kr">const</span> <span class="nx">provisioner</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">loadAccount</span><span class="p">(</span><span class="nx">provisionerKeyPair</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">())</span>
+
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'creating account in ledger'</span><span class="p">,</span> <span class="nx">keypair</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">())</span>
+  <span class="kr">const</span> <span class="nx">transaction</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">provisioner</span><span class="p">)</span>
+        <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
+          <span class="c1">// Operation to create new accounts</span>
+          <span class="nx">Operation</span><span class="p">.</span><span class="nx">createAccount</span><span class="p">({</span>
+            <span class="na">destination</span><span class="p">:</span> <span class="nx">keypair</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">(),</span>
+            <span class="na">startingBalance</span><span class="p">:</span> <span class="s1">'2'</span>
+          <span class="p">})</span>
+        <span class="p">).</span><span class="nx">build</span><span class="p">()</span>
+
+  <span class="c1">// Sign the transaction above</span>
+  <span class="nx">transaction</span><span class="p">.</span><span class="nx">sign</span><span class="p">(</span><span class="nx">provisionerKeyPair</span><span class="p">)</span>
+
+  <span class="c1">// Submit transaction to the server</span>
+  <span class="kr">const</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">submitTransaction</span><span class="p">(</span><span class="nx">transaction</span><span class="p">);</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Account created: '</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span>
+<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'Stellar account not created.'</span><span class="p">,</span> <span class="nx">e</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+<p>The Stellar SDK includes a transaction builder which helps you create operations. To create an account, you&#39;ll need to use the <a href="https://stellar.github.io/js-stellar-sdk/Operation.html#.createAccount">createAccount operation</a>. The code on the right includes the relevant pieces to create a new account programmatically.</p>
+
+<p>You can follow along and read the comment on what each line represents. After that you&#39;ll need to use that code in the context of the signup mutation to create the account in the Stellar ledger.</p>
+
+<p>You need to extend the signup mutation to fund the user&#39;s account after it has been created successfully.</p>
+
+<p>You can find in <a href="https://github.com/abuiles/anchorx-api/pull/5">pull request #5</a> the change in the mutation using the create account operation.</p>
+
+<aside class="notice">
+In a production app, you probably want to have all the code interacting with Stellar accounts and secret keys in a different service like AWS Lambda. Also make use of AWS IAM policies, KMS and force MFA.
+</aside>
+<h2 id='creating-trustlines'>Creating trustlines</h2>
 <p>Implementation of Stellar trustlines</p>
 <h2 id='credit-account'>Credit account</h2>
 <p>API end-point to &quot;transfer&quot; USD from bank account to Stellar account.</p>
