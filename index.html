@@ -249,9 +249,6 @@
                   <li>
                     <a href="#anchor" class="toc-h2 toc-link" data-title="anchor">Anchor</a>
                   </li>
-                  <li>
-                    <a href="#multisignature" class="toc-h2 toc-link" data-title="multisignature">Multisignature</a>
-                  </li>
               </ul>
           </li>
           <li>
@@ -299,13 +296,16 @@
                     <a href="#creating-the-account-in-the-stellar-ledger" class="toc-h2 toc-link" data-title="creating-the-account-in-the-stellar-ledger">Creating the account in the Stellar ledger</a>
                   </li>
                   <li>
+                    <a href="#payments" class="toc-h2 toc-link" data-title="payments">Payments</a>
+                  </li>
+                  <li>
+                    <a href="#creating-anchorx-custom-asset" class="toc-h2 toc-link" data-title="creating-anchorx-custom-asset">Creating AnchorX custom asset</a>
+                  </li>
+                  <li>
                     <a href="#creating-trustlines" class="toc-h2 toc-link" data-title="creating-trustlines">Creating trustlines</a>
                   </li>
                   <li>
                     <a href="#credit-account" class="toc-h2 toc-link" data-title="credit-account">Credit account</a>
-                  </li>
-                  <li>
-                    <a href="#payments" class="toc-h2 toc-link" data-title="payments">Payments</a>
                   </li>
                   <li>
                     <a href="#debit-account" class="toc-h2 toc-link" data-title="debit-account">Debit account</a>
@@ -569,8 +569,6 @@ authorize the user to hold the asset. Once the user have been
 authorized they will be able to deposit USD or debit USD from their accounts.</p>
 
 <p>You can learn more about anchors in the SDF guides: <a href="https://www.stellar.org/developers/guides/anchor/">https://www.stellar.org/developers/guides/anchor/</a></p>
-<h2 id='multisignature'>Multisignature</h2>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 <h1 id='anchor-setup'>Anchor Setup</h1>
 <p>The following is high level overview of what happens when you want to use Venmo:</p>
 
@@ -882,12 +880,125 @@ Lear more about minimum account balance <a href="https://www.stellar.org/develop
 <aside class="notice">
 In a production app, you probably want to have all the code interacting with Stellar accounts and secret keys in a different service like AWS Lambda. Also make use of AWS IAM policies, KMS and force MFA.
 </aside>
-<h2 id='creating-trustlines'>Creating trustlines</h2>
+<h2 id='payments'>Payments</h2><pre class="highlight javascript tab-javascript"><code> <span class="kr">import</span> <span class="p">{</span>
+ <span class="o">+</span> <span class="nx">Asset</span><span class="p">,</span>
+   <span class="nx">Keypair</span><span class="p">,</span>
+ <span class="o">+</span> <span class="nx">Memo</span>
+   <span class="nx">Network</span><span class="p">,</span>
+   <span class="nx">Operation</span><span class="p">,</span>
+   <span class="nx">Server</span><span class="p">,</span>
+   <span class="nx">TransactionBuilder</span>
+ <span class="p">}</span> <span class="nx">from</span> <span class="s1">'stellar-sdk'</span>
+
+ <span class="kr">import</span> <span class="p">{</span>
+   <span class="nx">AES</span><span class="p">,</span>
+ <span class="o">+</span> <span class="nx">enc</span>
+ <span class="p">}</span> <span class="nx">from</span> <span class="s1">'crypto-js'</span><span class="nx">xo</span>
+
+ <span class="kr">const</span> <span class="nx">ENVCryptoSecret</span> <span class="o">=</span> <span class="s1">'StellarIsAwesome-But-Do-Not-Put-This-Value-In-Code'</span>
+
+   <span class="nl">mutations</span><span class="p">:</span> <span class="p">{</span> <span class="p">...</span>
+<span class="o">+</span>    <span class="nx">async</span> <span class="nx">payment</span><span class="p">(</span><span class="nx">_</span><span class="p">,</span> <span class="p">{</span> <span class="nx">amount</span><span class="p">,</span> <span class="nx">senderUsername</span><span class="p">,</span> <span class="nx">recipientUsername</span><span class="p">,</span> <span class="nx">memo</span> <span class="p">},</span> <span class="nx">context</span><span class="p">:</span> <span class="nx">Context</span><span class="p">,</span> <span class="nx">info</span><span class="p">)</span> <span class="p">{</span>
+<span class="o">+</span>      <span class="c1">// Load users from database</span>
+<span class="o">+</span>      <span class="kr">const</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">context</span><span class="p">.</span><span class="nx">db</span><span class="p">.</span><span class="nx">query</span><span class="p">.</span><span class="nx">users</span><span class="p">({</span>
+<span class="o">+</span>        <span class="na">where</span><span class="p">:</span> <span class="p">{</span>
+<span class="o">+</span>          <span class="na">username_in</span><span class="p">:</span> <span class="p">[</span><span class="nx">senderUsername</span><span class="p">,</span> <span class="nx">recipientUsername</span><span class="p">]</span>
+<span class="o">+</span>        <span class="p">}</span>
+<span class="o">+</span>      <span class="p">})</span>
+<span class="o">+</span>
+<span class="o">+</span>      <span class="kr">const</span> <span class="p">[</span><span class="nx">sender</span><span class="p">,</span> <span class="nx">recipient</span><span class="p">]</span> <span class="o">=</span> <span class="nx">result</span>
+<span class="o">+</span>
+<span class="o">+</span>      <span class="nx">Network</span><span class="p">.</span><span class="nx">useTestNetwork</span><span class="p">();</span>
+<span class="o">+</span>      <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">);</span>
+<span class="o">+</span>
+<span class="o">+</span>      <span class="c1">// build the keypair required to sign the payment transaction</span>
+<span class="o">+</span>      <span class="kr">const</span> <span class="nx">signerKeys</span> <span class="o">=</span> <span class="nx">Keypair</span><span class="p">.</span><span class="nx">fromSecret</span><span class="p">(</span>
+<span class="o">+</span>        <span class="c1">// Use something like KMS in production</span>
+<span class="o">+</span>        <span class="nx">AES</span><span class="p">.</span><span class="nx">decrypt</span><span class="p">(</span>
+<span class="o">+</span>          <span class="nx">recipient</span><span class="p">.</span><span class="nx">stellarSeed</span><span class="p">,</span>
+<span class="o">+</span>          <span class="nx">ENVCryptoSecret</span>
+<span class="o">+</span>        <span class="p">).</span><span class="nx">toString</span><span class="p">(</span><span class="nx">enc</span><span class="p">.</span><span class="nx">Utf8</span><span class="p">)</span>
+<span class="o">+</span>      <span class="p">)</span>
+<span class="o">+</span>
+<span class="o">+</span>      <span class="c1">// Load Stellar account from ledger</span>
+<span class="o">+</span>      <span class="kr">const</span> <span class="nx">account</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">loadAccount</span><span class="p">(</span><span class="nx">sender</span><span class="p">.</span><span class="nx">stellarAccount</span><span class="p">)</span>
+<span class="o">+</span>
+<span class="o">+</span>      <span class="cm">/*
++        Payments require an asset type, for now users will be sending
++        lumens. In the next chapter you'll create a custom asset
++        representing Dollars and use it.
++      */</span>
+<span class="o">+</span>      <span class="kr">const</span> <span class="nx">asset</span> <span class="o">=</span> <span class="nx">Asset</span><span class="p">.</span><span class="kr">native</span><span class="p">()</span>
+<span class="o">+</span>
+<span class="o">+</span>      <span class="kd">let</span> <span class="nx">transaction</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">account</span><span class="p">)</span>
+<span class="o">+</span>        <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
+<span class="o">+</span>          <span class="nx">Operation</span><span class="p">.</span><span class="nx">payment</span><span class="p">({</span>
+<span class="o">+</span>            <span class="na">destination</span><span class="p">:</span> <span class="nx">sender</span><span class="p">.</span><span class="nx">stellarAccount</span><span class="p">,</span>
+<span class="o">+</span>            <span class="nx">asset</span><span class="p">,</span>
+<span class="o">+</span>            <span class="nx">amount</span>
+<span class="o">+</span>          <span class="p">})</span>
+<span class="o">+</span>        <span class="p">).</span><span class="nx">build</span><span class="p">()</span>
+<span class="o">+</span>
+<span class="o">+</span>      <span class="nx">transaction</span><span class="p">.</span><span class="nx">sign</span><span class="p">(</span><span class="nx">signerKeys</span><span class="p">)</span>
+<span class="o">+</span>
+<span class="o">+</span>      <span class="k">try</span> <span class="p">{</span>
+<span class="o">+</span>        <span class="kr">const</span> <span class="p">{</span> <span class="nx">hash</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">submitTransaction</span><span class="p">(</span><span class="nx">transaction</span><span class="p">)</span>
+<span class="o">+</span>
+<span class="o">+</span>        <span class="k">return</span> <span class="p">{</span> <span class="na">id</span><span class="p">:</span> <span class="nx">hash</span> <span class="p">}</span>
+<span class="o">+</span>      <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+<span class="o">+</span>        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`failure </span><span class="p">${</span><span class="nx">e</span><span class="p">}</span><span class="s2">`</span><span class="p">)</span>
+<span class="o">+</span>
+<span class="o">+</span>        <span class="k">throw</span> <span class="nx">e</span>
+<span class="o">+</span>      <span class="p">}</span>
+<span class="o">+</span>    <span class="p">}</span>
+   <span class="p">},</span>
+ <span class="p">}</span>
+</code></pre>
+<p>In Venmo you can send payments using the recipient&#39;s phone number,
+email or username. In AnchorX users will be sending money to each
+other using their usernames. To keep things simple, you won&#39;t
+implement any kind of session management which means you&#39;ll have to
+tell the API explicitly who is the sender and the recipient. For
+production apps this is very BAD IDEA, but the goal here is not to
+build an user management or Authn/Authz system.</p>
+
+<p>To send a payment in Stellar, you need the recipient&#39;s Stellar account
+and source account secret.</p>
+
+<p>The code in the right shows the mutation to create new payments. It
+takes the sender and recipient username as parameters. It loads first
+the user&#39;s data from the database, decrypts the sender seed and then
+signs the transaction to submit a payment.</p>
+
+<aside class="notice">
+If you are freaking out about decrypting the seed and signing the
+transaction with it, don't worry. You will learn more about other ways
+to deal with account seeds and signing transactions in a different section.
+</aside>
+
+<p>Payments are created using the payment <code>payment</code> function from the
+<code>Operation</code> class. You can see it takes the destination, the
+asset and the amount.</p>
+
+<p>Since Stellar accounts can hold multiple assets you need to specify
+which of the assets held by an account you are trying to transfer. For
+now the operation is sending lumens. In AnchorX, users won&#39;t be
+sending lumens to each other but the custom asset representing USD.</p>
+
+<p>In the upcoming sections you will:</p>
+
+<ul>
+<li>Create a custom asset representing Dollars.</li>
+<li>Learn how to allow accounts to hold that asset.</li>
+<li>Implement the <code>creditAccount</code> mutation which simulates transferring Dollars from the user bank account to AnchorX.</li>
+<li>Change the payment mutation to send USD instead of lumens.</li>
+</ul>
+
+<p><a href="https://github.com/abuiles/anchorx-api/pull/7">Pull request #7</a> includes all the changes introduced in this section.</p>
+<h2 id='creating-anchorx-custom-asset'>Creating AnchorX custom asset</h2><h2 id='creating-trustlines'>Creating trustlines</h2>
 <p>Implementation of Stellar trustlines</p>
 <h2 id='credit-account'>Credit account</h2>
 <p>API end-point to &quot;transfer&quot; USD from bank account to Stellar account.</p>
-<h2 id='payments'>Payments</h2>
-<p>API end-point to transfer money from user a to user b</p>
 <h2 id='debit-account'>Debit account</h2>
 <p>API end-point to transfer money from AnchorX to bank account.</p>
 <h1 id='building-the-mobile-wallet'>Building the mobile wallet</h1><h2 id='using-the-stellar-sdk-in-react-native'>Using the Stellar-SDK in React-Native</h2>
