@@ -358,6 +358,7 @@
       </div>
         <ul class="toc-footer">
             <li><a href='https://twitter.com/abuiles'>Follow me on Twitter @abuiles</a></li>
+            <li><a href='https://blog.abuiles.com/consulting'>Stellar consulting</a></li>
             <li><a href='https://github.com/abuiles/building-your-own-venmo-with-stellar/issues'>Report issues</a></li>
             <li><a href='https://github.com/lord/slate'>Documentation Powered by Slate</a></li>
         </ul>
@@ -1104,7 +1105,44 @@ with your asset. In this scenario you need two trustlines one from the customer&
 <p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0r2R1z2h2g2p2t3L3O0m/Screen%20Recording%202018-07-09%20at%2003.00%20PM.gif?X-CloudApp-Visitor-Id=49274&amp;v=a19639ff" alt="Screen%20recording%202018 07 09%20at%2003.00%20pm" /></p>
 
 <p>You can see the changes from this section in <a href="https://github.com/abuiles/anchorx-api/pull/8">pull request #8</a>.</p>
-<h2 id='allow-trustline'>Allow trustline</h2><h2 id='credit-account'>Credit account</h2>
+<h2 id='allow-trustline'>Allow trustline</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">export</span> <span class="nx">async</span> <span class="kd">function</span> <span class="nx">allowTrust</span><span class="p">(</span><span class="nx">trustor</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">Network</span><span class="p">.</span><span class="nx">useTestNetwork</span><span class="p">();</span>
+  <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">);</span>
+
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="c1">// Never store secrets in code! Use something like KMS and put</span>
+    <span class="c1">// this somewhere were few people can access it.</span>
+    <span class="kr">const</span> <span class="nx">issuingKeys</span> <span class="o">=</span> <span class="nx">Keypair</span><span class="p">.</span><span class="nx">fromSecret</span><span class="p">(</span><span class="s1">'SBYZ5NEJ34Y3FTKADVBO3Y76U6VLTREJSW4MXYCVMUBTL2K3V4Y644UX'</span><span class="p">)</span>
+    <span class="kr">const</span> <span class="nx">issuingAccount</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">loadAccount</span><span class="p">(</span><span class="nx">issuingKeys</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">())</span>
+
+    <span class="kr">const</span> <span class="nx">transaction</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">issuingAccount</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
+        <span class="nx">Operation</span><span class="p">.</span><span class="nx">allowTrust</span><span class="p">({</span>
+          <span class="nx">trustor</span><span class="p">,</span>
+          <span class="na">assetCode</span><span class="p">:</span> <span class="nx">AnchorXUSD</span><span class="p">.</span><span class="nx">code</span><span class="p">,</span>
+          <span class="na">authorize</span><span class="p">:</span> <span class="kc">true</span>
+        <span class="p">})</span>
+      <span class="p">)</span>
+      <span class="p">.</span><span class="nx">build</span><span class="p">();</span>
+
+    <span class="nx">transaction</span><span class="p">.</span><span class="nx">sign</span><span class="p">(</span><span class="nx">issuingKeys</span><span class="p">);</span>
+
+    <span class="kr">const</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">submitTransaction</span><span class="p">(</span><span class="nx">transaction</span><span class="p">)</span>
+
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'trust allowed'</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nx">result</span>
+  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'allow trust failed'</span><span class="p">,</span> <span class="nx">e</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>On the right you can see the allow trust operation in used. It
+receives the public key of the account that you want to authorize and
+the asset&#39;s code.</p>
+
+<p>Now you can use that function after calling <code>createTrustline</code>. <a href="https://github.com/abuiles/anchorx-api/pull/9/files">Pull request #9</a> shows you how to use the <code>allowTrust</code> function inside the signup mutation.</p>
+<h2 id='credit-account'>Credit account</h2>
 <p>API end-point to &quot;transfer&quot; USD from bank account to Stellar account.</p>
 <h2 id='debit-account'>Debit account</h2>
 <p>API end-point to transfer money from AnchorX to bank account.</p>
