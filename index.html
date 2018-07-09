@@ -299,10 +299,16 @@
                     <a href="#payments" class="toc-h2 toc-link" data-title="payments">Payments</a>
                   </li>
                   <li>
-                    <a href="#creating-anchorx-custom-asset" class="toc-h2 toc-link" data-title="creating-anchorx-custom-asset">Creating AnchorX custom asset</a>
+                    <a href="#issuing-anchorx-custom-asset" class="toc-h2 toc-link" data-title="issuing-anchorx-custom-asset">Issuing AnchorX custom asset</a>
                   </li>
                   <li>
-                    <a href="#creating-trustlines" class="toc-h2 toc-link" data-title="creating-trustlines">Creating trustlines</a>
+                    <a href="#setting-up-issuing-account" class="toc-h2 toc-link" data-title="setting-up-issuing-account">Setting up issuing account</a>
+                  </li>
+                  <li>
+                    <a href="#creating-a-trustline" class="toc-h2 toc-link" data-title="creating-a-trustline">Creating a trustline</a>
+                  </li>
+                  <li>
+                    <a href="#allow-trustline" class="toc-h2 toc-link" data-title="allow-trustline">Allow trustline</a>
                   </li>
                   <li>
                     <a href="#credit-account" class="toc-h2 toc-link" data-title="credit-account">Credit account</a>
@@ -593,8 +599,6 @@ data like SSN, driver&#39;s license, passport, proof of residence, etc.</p>
 <p>After an user creates an account with AnchorX, the service will
 automatically provision a Stellar account and authorize the account to
 hold the anchor&#39;s asset.</p>
-
-<p>Stellar accounts can hold any asset, but additionally anchors can authorize who is allowed to hold their asset.</p>
 
 <p>When a Stellar accounts decides to trust a given asset, they are
 creating a trustline between the account and the asset. Such operation
@@ -995,9 +999,112 @@ sending lumens to each other but the custom asset representing USD.</p>
 </ul>
 
 <p><a href="https://github.com/abuiles/anchorx-api/pull/7">Pull request #7</a> includes all the changes introduced in this section.</p>
-<h2 id='creating-anchorx-custom-asset'>Creating AnchorX custom asset</h2><h2 id='creating-trustlines'>Creating trustlines</h2>
-<p>Implementation of Stellar trustlines</p>
-<h2 id='credit-account'>Credit account</h2>
+<h2 id='issuing-anchorx-custom-asset'>Issuing AnchorX custom asset</h2>
+<p>In this section you&#39;ll learn the high level details of issuing a new asset and how to allow other accounts to hold your asset. Stellar&#39;s official documentation has a great guide about issuing assets so this tutorial won&#39;t repeat the same. You can read more about it here <a href="https://www.stellar.org/developers/guides/issuing-assets.html">https://www.stellar.org/developers/guides/issuing-assets.html</a></p>
+
+<p>To create an asset you&#39;ll need an asset code and an issuing account.</p>
+
+<p>The asset code needs a short identifier, for national currencies you need to use an <a href="https://en.wikipedia.org/wiki/ISO_4217">ISO 4217 code</a>. AnchorX asset will use the code <code>USD</code>.</p>
+
+<p>The issuing account can emit new <code>USD</code>, give it to other accounts and impose some controls around it. In this tutorial the issuing account will be <code>GBX67BEOABQAELIP2XTC6JXHJPASKYCIQNS7WF6GWPSCBEAJEK74HK36</code> with seed <code>SBYZ5NEJ34Y3FTKADVBO3Y76U6VLTREJSW4MXYCVMUBTL2K3V4Y644UX</code>.</p>
+
+<p>Before an account can hold a given asset, it needs to explicitly create
+an operation expressing that it trust the asset with code <code>USD</code>
+created by the issuing account
+<code>GBX67BEOABQAELIP2XTC6JXHJPASKYCIQNS7WF6GWPSCBEAJEK74HK36</code>, such
+operation is called creating a <code>trustline</code>.</p>
+
+<p>The issuer can set a condition where it needs to authorize accounts
+before they can hold its asset, this is useful if you only want people
+who are your clients or have gone through your KYC process to transact
+with your asset. In this scenario you need two trustlines one from the customer&#39;s account to your issuing account and then one from your issuing account to the customer&#39;s account.</p>
+<h2 id='setting-up-issuing-account'>Setting up issuing account</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">import</span> <span class="p">{</span>
+  <span class="nx">AuthRequiredFlag</span><span class="p">,</span>
+  <span class="nx">AuthRevocableFlag</span><span class="p">,</span>
+  <span class="nx">Server</span><span class="p">,</span>
+  <span class="nx">Keypair</span><span class="p">,</span>
+  <span class="nx">Network</span><span class="p">,</span>
+  <span class="nx">Operation</span><span class="p">,</span>
+  <span class="nx">TransactionBuilder</span><span class="p">,</span>
+  <span class="nx">xdr</span>
+<span class="p">}</span> <span class="nx">from</span> <span class="s1">'stellar-sdk'</span>
+
+<span class="nx">async</span> <span class="kd">function</span> <span class="nx">setupIssuer</span><span class="p">()</span> <span class="p">{</span>
+  <span class="nx">Network</span><span class="p">.</span><span class="nx">useTestNetwork</span><span class="p">()</span>
+
+  <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">)</span>
+  <span class="kr">const</span> <span class="nx">issuerKeyPair</span> <span class="o">=</span> <span class="nx">Keypair</span><span class="p">.</span><span class="nx">fromSecret</span><span class="p">(</span><span class="s1">'SBYZ5NEJ34Y3FTKADVBO3Y76U6VLTREJSW4MXYCVMUBTL2K3V4Y644UX'</span><span class="p">)</span>
+  <span class="kr">const</span> <span class="nx">issuingAccount</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">loadAccount</span><span class="p">(</span><span class="nx">issuerKeyPair</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">())</span>
+
+  <span class="kd">var</span> <span class="nx">transaction</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">issuingAccount</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
+        <span class="nx">Operation</span><span class="p">.</span><span class="nx">setOptions</span><span class="p">({</span>
+          <span class="na">setFlags</span><span class="p">:</span> <span class="nx">AuthRevocableFlag</span> <span class="o">|</span> <span class="nx">AuthRequiredFlag</span>
+        <span class="p">}))</span>
+      <span class="p">.</span><span class="nx">build</span><span class="p">()</span>
+
+  <span class="nx">transaction</span><span class="p">.</span><span class="nx">sign</span><span class="p">(</span><span class="nx">issuerKeyPair</span><span class="p">)</span>
+  <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">submitTransaction</span><span class="p">(</span><span class="nx">transaction</span><span class="p">)</span>
+
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'All set!'</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">setupIssuer</span><span class="p">()</span>
+
+</code></pre>
+<p>The code on the right shows you the basic setup for an account before creating an asset. In it, you are setting the <code>AuthRequiredFlag</code> which requires the trustline from the issuer to the holder and <code>AuthRevocableFlag</code> which allows you to freeze the user&#39;s access to your asset. You can read more about both flags <a href="https://www.stellar.org/developers/guides/concepts/assets.html#controlling-asset-holders">here</a>. Since this is something which is done once, this is not included in the GitHub repo. You can try it in <a href="https://repl.it/@abuiles/SetupAnchorFlags">Repl.it</a></p>
+
+<p>Next you need to extend the signup mutation to create both trustlines when an user creates a new account.</p>
+<h2 id='creating-a-trustline'>Creating a trustline</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">import</span> <span class="p">{</span>
+  <span class="nx">Asset</span><span class="p">,</span>
+  <span class="nx">Keypair</span><span class="p">,</span>
+  <span class="nx">Network</span><span class="p">,</span>
+  <span class="nx">Operation</span><span class="p">,</span>
+  <span class="nx">Server</span><span class="p">,</span>
+  <span class="nx">TransactionBuilder</span>
+<span class="p">}</span> <span class="nx">from</span> <span class="s1">'stellar-sdk'</span>
+
+<span class="kr">export</span> <span class="nx">async</span> <span class="kd">function</span> <span class="nx">createTrustline</span><span class="p">(</span><span class="nx">accountKeypair</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">Network</span><span class="p">.</span><span class="nx">useTestNetwork</span><span class="p">();</span>
+  <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">);</span>
+
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="nx">account</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">loadAccount</span><span class="p">(</span><span class="nx">accountKeypair</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">())</span>
+    <span class="kr">const</span> <span class="nx">transaction</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">account</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
+        <span class="nx">Operation</span><span class="p">.</span><span class="nx">changeTrust</span><span class="p">({</span>
+          <span class="na">asset</span><span class="p">:</span> <span class="nx">AnchorXUSD</span>
+        <span class="p">}))</span>
+      <span class="p">.</span><span class="nx">build</span><span class="p">();</span>
+
+    <span class="nx">transaction</span><span class="p">.</span><span class="nx">sign</span><span class="p">(</span><span class="nx">accountKeypair</span><span class="p">)</span>
+
+    <span class="kr">const</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">submitTransaction</span><span class="p">(</span><span class="nx">transaction</span><span class="p">)</span>
+
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'trustline created from  account to issuer and signers updated'</span><span class="p">,</span> <span class="nx">result</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nx">result</span>
+  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'create trustline failed.'</span><span class="p">,</span> <span class="nx">e</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>The code on the right shows you how to create a trustline from an account to the issuer account. You&#39;ll be using that function inside the signup mutation.</p>
+
+<p>Now after you create a new user, you will also create a trustline from the new account to AnchorX asset. You are not done yet, although the account accepts AnchorX <code>USD</code>, if you try to send <code>USD</code> to that account it won&#39;t work because the account hasn&#39;t been authorized to hold the asset.</p>
+
+<p>After a trustline is created, you&#39;ll see the custom asset in the account&#39;s balance.</p>
+
+<p>The following gif shows you an account&#39;s state after it gets created without the trustline to AnchorX asset. You can see that the balance key only shows native.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/113r1e353x3S1s1V2k2I/Screen%20Recording%202018-07-09%20at%2002.56%20PM.gif?X-CloudApp-Visitor-Id=49274&amp;v=559df5f9" alt="Screen%20recording%202018 07 09%20at%2002.56%20pm" /></p>
+
+<p>And the next one will show you what happens in the account after creating the trustline.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0r2R1z2h2g2p2t3L3O0m/Screen%20Recording%202018-07-09%20at%2003.00%20PM.gif?X-CloudApp-Visitor-Id=49274&amp;v=a19639ff" alt="Screen%20recording%202018 07 09%20at%2003.00%20pm" /></p>
+
+<p>You can see the changes from this section in <a href="https://github.com/abuiles/anchorx-api/pull/8">pull request #8</a>.</p>
+<h2 id='allow-trustline'>Allow trustline</h2><h2 id='credit-account'>Credit account</h2>
 <p>API end-point to &quot;transfer&quot; USD from bank account to Stellar account.</p>
 <h2 id='debit-account'>Debit account</h2>
 <p>API end-point to transfer money from AnchorX to bank account.</p>
