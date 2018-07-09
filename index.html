@@ -311,6 +311,12 @@
                     <a href="#allow-trustline" class="toc-h2 toc-link" data-title="allow-trustline">Allow trustline</a>
                   </li>
                   <li>
+                    <a href="#welcome-balance" class="toc-h2 toc-link" data-title="welcome-balance">Welcome balance</a>
+                  </li>
+                  <li>
+                    <a href="#paying-with-usd" class="toc-h2 toc-link" data-title="paying-with-usd">Paying with USD</a>
+                  </li>
+                  <li>
                     <a href="#credit-account" class="toc-h2 toc-link" data-title="credit-account">Credit account</a>
                   </li>
                   <li>
@@ -368,7 +374,7 @@
       <div class="content">
         <h1 id='building-your-own-venmo-with-stellar'>Building your own Venmo with Stellar</h1>
 <aside class="notice">
-Work in progress - 40% complete.
+Work in progress - ██████░░░░░░░ 48% complete.
 </aside>
 
 <blockquote>
@@ -911,7 +917,8 @@ In a production app, you probably want to have all the code interacting with Ste
 <span class="o">+</span>        <span class="p">}</span>
 <span class="o">+</span>      <span class="p">})</span>
 <span class="o">+</span>
-<span class="o">+</span>      <span class="kr">const</span> <span class="p">[</span><span class="nx">sender</span><span class="p">,</span> <span class="nx">recipient</span><span class="p">]</span> <span class="o">=</span> <span class="nx">result</span>
+<span class="o">+</span>      <span class="kr">const</span> <span class="nx">sender</span> <span class="o">=</span> <span class="nx">result</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">u</span> <span class="o">=&gt;</span> <span class="nx">u</span><span class="p">.</span><span class="nx">username</span> <span class="o">===</span> <span class="nx">senderUsername</span><span class="p">)</span>
+<span class="o">+</span>      <span class="kr">const</span> <span class="nx">recipient</span> <span class="o">=</span> <span class="nx">result</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">u</span> <span class="o">=&gt;</span> <span class="nx">u</span><span class="p">.</span><span class="nx">username</span> <span class="o">===</span> <span class="nx">recipientUsername</span><span class="p">)</span>
 <span class="o">+</span>
 <span class="o">+</span>      <span class="nx">Network</span><span class="p">.</span><span class="nx">useTestNetwork</span><span class="p">();</span>
 <span class="o">+</span>      <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">);</span>
@@ -1142,6 +1149,96 @@ receives the public key of the account that you want to authorize and
 the asset&#39;s code.</p>
 
 <p>Now you can use that function after calling <code>createTrustline</code>. <a href="https://github.com/abuiles/anchorx-api/pull/9/files">Pull request #9</a> shows you how to use the <code>allowTrust</code> function inside the signup mutation.</p>
+<h2 id='welcome-balance'>Welcome balance</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">export</span> <span class="nx">async</span> <span class="kd">function</span> <span class="nx">payment</span><span class="p">(</span><span class="nx">signerKeys</span><span class="p">:</span> <span class="nx">Keypair</span><span class="p">,</span> <span class="nx">destination</span><span class="p">:</span> <span class="nx">string</span><span class="p">,</span> <span class="nx">amount</span><span class="p">:</span> <span class="nx">string</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">Network</span><span class="p">.</span><span class="nx">useTestNetwork</span><span class="p">();</span>
+  <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">);</span>
+
+  <span class="kr">const</span> <span class="nx">account</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">loadAccount</span><span class="p">(</span><span class="nx">signerKeys</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">())</span>
+
+  <span class="kd">let</span> <span class="nx">transaction</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">account</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
+      <span class="nx">Operation</span><span class="p">.</span><span class="nx">payment</span><span class="p">({</span>
+        <span class="nx">destination</span><span class="p">,</span>
+        <span class="na">asset</span><span class="p">:</span> <span class="nx">AnchorXUSD</span><span class="p">,</span>
+        <span class="nx">amount</span>
+      <span class="p">})</span>
+    <span class="p">).</span><span class="nx">addMemo</span><span class="p">(</span><span class="nx">Memo</span><span class="p">.</span><span class="nx">text</span><span class="p">(</span><span class="s1">'https://goo.gl/6pDRPi'</span><span class="p">))</span>
+    <span class="p">.</span><span class="nx">build</span><span class="p">()</span>
+
+  <span class="nx">transaction</span><span class="p">.</span><span class="nx">sign</span><span class="p">(</span><span class="nx">signerKeys</span><span class="p">)</span>
+
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">hash</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">submitTransaction</span><span class="p">(</span><span class="nx">transaction</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span> <span class="na">id</span><span class="p">:</span> <span class="nx">hash</span> <span class="p">}</span>
+  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`failure </span><span class="p">${</span><span class="nx">e</span><span class="p">}</span><span class="s2">`</span><span class="p">)</span>
+    <span class="k">throw</span> <span class="nx">e</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>In theory, AnchorX and the Stellar accounts it creates are ready to
+receive and send <code>USD</code>. AnchorX&#39;s growth hackers have decided that the
+best way to bring people to the platform is by giving each user a
+welcome bonus of $10 USD.</p>
+
+<p>You need to extend the signup mutation to send new users $10 USD. Add the function on the right to utils and then call it after the allow trustline operation.</p>
+
+<p>The function takes the signer keys, that is the account we are debiting the USD from, the destination is the account to be credited and instead of sending the native asset, you are sending the custom USD.</p>
+
+<p>You can use now that function inside the signup mutation with the issuing keypair.</p>
+
+<p>The following gif show you how after creating new accounts, they end up with $10 USD in their balance.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0n1c1o2o0F2P2H0c3K1b/Screen%20Recording%202018-07-09%20at%2004.41%20PM.gif?X-CloudApp-Visitor-Id=49274&amp;v=c08071af" alt="Screen%20recording%202018 07 09%20at%2004.41%20pm" /></p>
+
+<p><a href="https://github.com/abuiles/anchorx-api/pull/10">Pull request #10</a>
+includes all the changes introduced in this section. Now that AnchorX
+users can hold USD, let&#39;s replace the payment mutation to send USD and
+also give them a way to debit or credit their accounts.</p>
+<h2 id='paying-with-usd'>Paying with USD</h2><pre class="highlight javascript tab-javascript"><code>    <span class="nx">async</span> <span class="nx">payment</span><span class="p">(</span><span class="nx">_</span><span class="p">,</span> <span class="p">{</span> <span class="nx">amount</span><span class="p">,</span> <span class="nx">senderUsername</span><span class="p">,</span> <span class="nx">recipientUsername</span><span class="p">,</span> <span class="nx">memo</span> <span class="p">},</span> <span class="nx">context</span><span class="p">:</span> <span class="nx">Context</span><span class="p">,</span> <span class="nx">info</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kr">const</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">context</span><span class="p">.</span><span class="nx">db</span><span class="p">.</span><span class="nx">query</span><span class="p">.</span><span class="nx">users</span><span class="p">({</span>
+        <span class="na">where</span><span class="p">:</span> <span class="p">{</span>
+          <span class="na">username_in</span><span class="p">:</span> <span class="p">[</span><span class="nx">senderUsername</span><span class="p">,</span> <span class="nx">recipientUsername</span><span class="p">]</span>
+        <span class="p">}</span>
+      <span class="p">})</span>
+
+      <span class="kr">const</span> <span class="nx">sender</span> <span class="o">=</span> <span class="nx">result</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">u</span> <span class="o">=&gt;</span> <span class="nx">u</span><span class="p">.</span><span class="nx">username</span> <span class="o">===</span> <span class="nx">senderUsername</span><span class="p">)</span>
+      <span class="kr">const</span> <span class="nx">recipient</span> <span class="o">=</span> <span class="nx">result</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="nx">u</span> <span class="o">=&gt;</span> <span class="nx">u</span><span class="p">.</span><span class="nx">username</span> <span class="o">===</span> <span class="nx">recipientUsername</span><span class="p">)</span>
+
+      <span class="kr">const</span> <span class="nx">signerKeys</span> <span class="o">=</span> <span class="nx">Keypair</span><span class="p">.</span><span class="nx">fromSecret</span><span class="p">(</span>
+        <span class="c1">// Use something like KMS in production</span>
+        <span class="nx">AES</span><span class="p">.</span><span class="nx">decrypt</span><span class="p">(</span>
+          <span class="nx">sender</span><span class="p">.</span><span class="nx">stellarSeed</span><span class="p">,</span>
+          <span class="nx">ENVCryptoSecret</span>
+        <span class="p">).</span><span class="nx">toString</span><span class="p">(</span><span class="nx">enc</span><span class="p">.</span><span class="nx">Utf8</span><span class="p">)</span>
+      <span class="p">)</span>
+
+      <span class="k">try</span> <span class="p">{</span>
+        <span class="kr">const</span> <span class="p">{</span> <span class="nx">hash</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">payment</span><span class="p">(</span>
+          <span class="nx">signerKeys</span><span class="p">,</span>
+          <span class="nx">recipient</span><span class="p">.</span><span class="nx">stellarAccount</span><span class="p">,</span>
+          <span class="nx">amount</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span> <span class="na">id</span><span class="p">:</span> <span class="nx">hash</span> <span class="p">}</span>
+      <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`failure </span><span class="p">${</span><span class="nx">e</span><span class="p">}</span><span class="s2">`</span><span class="p">)</span>
+
+        <span class="k">throw</span> <span class="nx">e</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+</code></pre>
+<p>You already have a payment mutation to allow people to send money between each other. Until now it was sending the native asset but since users can hold USD you need to replace it to send USD. To do so, you can use the payment function from the previous section.</p>
+
+<p>The code on the right shows you the new version of the payment mutation, which uses the <code>payment</code> function.</p>
+
+<p>The following gif show you the payment mutation in action.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/2m06171D3o3x1O2p3c3Z/Screen%20Recording%202018-07-09%20at%2005.06%20PM.gif?X-CloudApp-Visitor-Id=49274&amp;v=e39af9cd" alt="Screen%20recording%202018 07 09%20at%2005.06%20pm" /></p>
+
+<p>[Pull request #11[(https://github.com/abuiles/anchorx-api/pull/11) shows you the changes introduced in this section.</p>
 <h2 id='credit-account'>Credit account</h2>
 <p>API end-point to &quot;transfer&quot; USD from bank account to Stellar account.</p>
 <h2 id='debit-account'>Debit account</h2>
