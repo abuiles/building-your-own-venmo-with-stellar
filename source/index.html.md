@@ -71,6 +71,17 @@ also provision other users accounts as they signup for this Venmo
 clone which will be called `AnchorX`. Although each user will have a Stellar account they won't know
 about it.
 
+[TODO: Add intro of why are you using JS and what is required dependency-wise]
+[IDEA: "Precompiler Section"]
+
+Stellar is built through a RESTful HTTP API server called Horizon. You can run your
+own Horizon server using the [Quickstart Docker
+image](https://hub.docker.com/r/stellar/quickstart/) Although bindings exist for
+multiple languages, we will use JavaScript to build our Venmo. JavaScript programming
+is beyond this tutorial, nevertheless, a comprenhensive guide to setup a JavaScript
+environment with Stellar can be found
+[here](https://github.com/stellar/js-stellar-sdk)
+
 ### Creating accounts in the test network
 ```javascript
 const StellarSdk = require('stellar-sdk')
