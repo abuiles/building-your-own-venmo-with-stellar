@@ -331,7 +331,10 @@
             <a href="#building-the-mobile-wallet" class="toc-h1 toc-link" data-title="building-the-mobile-wallet">Building the mobile wallet</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#using-the-stellar-sdk-in-react-native" class="toc-h2 toc-link" data-title="using-the-stellar-sdk-in-react-native">Using the Stellar-SDK in React-Native</a>
+                    <a href="#mobile-wallet-boilerplate" class="toc-h2 toc-link" data-title="mobile-wallet-boilerplate">Mobile wallet boilerplate</a>
+                  </li>
+                  <li>
+                    <a href="#installing-the-stellar-sdk-in-react-native" class="toc-h2 toc-link" data-title="installing-the-stellar-sdk-in-react-native">Installing the Stellar-SDK in React Native</a>
                   </li>
                   <li>
                     <a href="#creating-an-user-signup-flow" class="toc-h2 toc-link" data-title="creating-an-user-signup-flow">Creating an user signup flow</a>
@@ -380,15 +383,10 @@
       <div class="content">
         <h1 id='building-your-own-venmo-with-stellar'>Building your own Venmo with Stellar</h1>
 <aside class="notice">
-Work in progress  ██████░░░░░░ 50% complete
+Work in progress  ██████░░░░ 60%
 </aside>
 
-<blockquote>
-<p>This is a free tutorial, but I like to drink coffee while I write. You can buy my a coffee with XLM, send a tip here <code>GBCFAMVYPJTXHVWRFP7VO6F4QE7B4UHAVJOEG5VR6VEB5M67GHQGEEAB</code> with the memo <code>coffee</code>.</p>
-</blockquote>
-
-<p>Welcome to building your own Venmo with Stellar. This guide will show
-you how to create a product &quot;similar&quot; to Venmo using Stellar.</p>
+<p>Welcome to building your own Venmo with Stellar. This guide will show you how to create a product &quot;similar&quot; to Venmo using Stellar.</p>
 
 <p>In Stellar, an entity like Venmo is called an <code>anchor</code>. When you are building an anchor, there are two suggested ways to build and maintain customer accounts:</p>
 
@@ -655,14 +653,13 @@ The code shows an operation where the issuing account is authorizing a <code>tru
 
 <p>The server will be written in <code>TypeScript</code> and use <a href="https://www.prisma.io/">Prisma</a> to generate the user management API.</p>
 <h2 id='setting-up-the-server'>Setting up the server</h2>
-<p>In this section you can find a GraphQL server created with <a href="https://oss.prisma.io/content/graphql-cli/01-overview">GraphQL CLI</a> and using the <code>TypeScript</code> template. To make things easy there is a release which you can use as starting point.</p>
+<p>In this section you can find a GraphQL server created with <a href="https://oss.prisma.io/content/graphql-cli/01-overview">GraphQL CLI</a> and using the <code>TypeScript</code> template. To make things easy there is boilerplate project which you can use to get started.</p>
 
-<p>The following pull request contains the boostrapping step <a href="https://github.com/abuiles/anchorx-api/pull/1">https://github.com/abuiles/anchorx-api/pull/1</a>. You can get it by running the following commands:</p>
+<p>Download the boilerplate running the following commands:</p>
 
 <ol>
-<li><code>git clone https://github.com/abuiles/anchorx-api</code></li>
+<li><code>git clone https://github.com/abuiles/anchorx-api-boilerplate anchorx-api</code></li>
 <li><code>cd anchorx-api</code></li>
-<li><code>git checkout v1</code></li>
 </ol>
 
 <p>Next you are going to add the user model.</p>
@@ -1339,8 +1336,59 @@ also give them a way to debit or credit their accounts.</p>
 <li><a href="#debit-account">What happens after an issuing account receives back issued assets.</a></li>
 </ul>
 
-<p>In the next chapter you&#39;ll be building a mobile wallet in React-Native to allow AnchorX customer to interact with their accounts. You&#39;ll also learn how to use the Stellar JS SDK to read accounts data and follow payments. After you build the wallet, you will learn about best practices like managing secret keys, using a base account along with the issuing account, how to setup multisignatutre schemas and security considerations.</p>
-<h1 id='building-the-mobile-wallet'>Building the mobile wallet</h1><h2 id='using-the-stellar-sdk-in-react-native'>Using the Stellar-SDK in React-Native</h2>
+<p>In the next chapter you&#39;ll be building a mobile wallet in React Native to allow AnchorX customer to interact with their accounts. You&#39;ll also learn how to use the Stellar JS SDK to read accounts data and follow payments. After you build the wallet, you will learn about best practices like managing secret keys, using a base account along with the issuing account, how to setup multisignatutre schemas and security considerations.</p>
+<h1 id='building-the-mobile-wallet'>Building the mobile wallet</h1>
+<p>In this chapter you&#39;ll learn how to use the Stellar JS SDK in React
+Native and use it to display balances and transactions. This tutorial
+won&#39;t go into details on things which are not related with Stellar
+like setting up React Native, navigation, setting Apollo, etc. This
+tutorial includes a boilerplate project which has all the basics already setup.</p>
+
+<p>When interacting with Stellar, you will find a detailed section explaining what&#39;s happening.</p>
+
+<p>The wallet will be written using the following technologies:</p>
+
+<ul>
+<li><a href="https://facebook.github.io/react-native/">React Native</a>.</li>
+<li><a href="https://www.typescriptlang.org/">TypeScript</a>.</li>
+<li><a href="https://www.apollographql.com/">GraphQL with Apollo</a>.</li>
+<li><a href="https://github.com/storybooks/storybook/tree/master/app/react-native">Storybook</a>.</li>
+<li><a href="https://nativebase.io/">NativeBase</a>.</li>
+<li><a href="https://github.com/react-navigation/react-navigation">React-Navigation</a>.</li>
+</ul>
+<h2 id='mobile-wallet-boilerplate'>Mobile wallet boilerplate</h2>
+<p>The following GIF shows you all the screens and functionality included in the mobile wallet boilerplate.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/1a132y2a340n1Y272Z1S/Screen%20Recording%202018-07-17%20at%2011.06%20AM.gif?X-CloudApp-Visitor-Id=49274&amp;v=78531abe" alt="Screen%20recording%202018 07 17%20at%2011.06%20am" /></p>
+
+<p>As you can see the login/signup screen is already configured to consume the <code>GraphQL</code> API. After the user signs in you will display the balance and transaction history and give the user the option to make new payments.</p>
+
+<p>Before downloading the boilerplate, make sure you have the following dependencies installed in your computer.</p>
+
+<ul>
+<li><a href="https://yarnpkg.com/lang/en/">yarn</a></li>
+<li><a href="https://docs.expo.io/versions/v28.0.0/introduction/installation#mobile-client-expo-for-ios-and-android">Expo client</a></li>
+</ul>
+
+<p>Next, download the boilerplate with the following commands:</p>
+
+<ol>
+<li><code>git clone https://github.com/abuiles/StellarMobileWalletBoilerplate AnchorX</code></li>
+<li><code>cd AnchorX</code></li>
+<li><code>yarn install</code></li>
+</ol>
+
+<p>After the dependencies are installed, you should be able to run the Android or iOS version of the app with the following commands:</p>
+
+<ul>
+<li>iOS: <code>yarn run ios</code></li>
+<li>Android: <code>yarn run android</code></li>
+</ul>
+
+<p>You will see instructions in the console on how to run in the Simulator or using the Expo client.</p>
+
+<p>Next, you need to install the JS Stellar SDK in the React Native and then display the account balance.</p>
+<h2 id='installing-the-stellar-sdk-in-react-native'>Installing the Stellar-SDK in React Native</h2>
 <p>Introduce the Stellar-SDK polyfill and how to display an account data in a RN app.</p>
 <h2 id='creating-an-user-signup-flow'>Creating an user signup flow</h2>
 <p>Very simple user signup flow based in user name. It shows how to setup Stellar account, multisig and trustline schema.</p>
