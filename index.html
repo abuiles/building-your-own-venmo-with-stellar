@@ -334,16 +334,13 @@
                     <a href="#mobile-wallet-boilerplate" class="toc-h2 toc-link" data-title="mobile-wallet-boilerplate">Mobile wallet boilerplate</a>
                   </li>
                   <li>
-                    <a href="#installing-the-stellar-sdk-in-react-native" class="toc-h2 toc-link" data-title="installing-the-stellar-sdk-in-react-native">Installing the Stellar-SDK in React Native</a>
-                  </li>
-                  <li>
-                    <a href="#creating-an-user-signup-flow" class="toc-h2 toc-link" data-title="creating-an-user-signup-flow">Creating an user signup flow</a>
-                  </li>
-                  <li>
-                    <a href="#depositing-quot-fiat-quot-into-your-wallet" class="toc-h2 toc-link" data-title="depositing-fiat-into-your-wallet">Depositing "fiat" into your wallet</a>
+                    <a href="#using-the-stellar-sdk-in-react-native-wip" class="toc-h2 toc-link" data-title="using-the-stellar-sdk-in-react-native-wip">Using the Stellar-SDK in React Native [WIP]</a>
                   </li>
                   <li>
                     <a href="#showing-account-transactions" class="toc-h2 toc-link" data-title="showing-account-transactions">Showing account transactions</a>
+                  </li>
+                  <li>
+                    <a href="#depositing-quot-fiat-quot-into-your-wallet" class="toc-h2 toc-link" data-title="depositing-fiat-into-your-wallet">Depositing "fiat" into your wallet</a>
                   </li>
                   <li>
                     <a href="#sending-payments" class="toc-h2 toc-link" data-title="sending-payments">Sending payments</a>
@@ -1363,12 +1360,7 @@ tutorial includes a boilerplate project which has all the basics already setup.<
 
 <p>As you can see the login/signup screen is already configured to consume the <code>GraphQL</code> API. After the user signs in you will display the balance and transaction history and give the user the option to make new payments.</p>
 
-<p>Before downloading the boilerplate, make sure you have the following dependencies installed in your computer.</p>
-
-<ul>
-<li><a href="https://yarnpkg.com/lang/en/">yarn</a></li>
-<li><a href="https://docs.expo.io/versions/v28.0.0/introduction/installation#mobile-client-expo-for-ios-and-android">Expo client</a></li>
-</ul>
+<p>Before downloading the boilerplate, install the required dependencies to run React Native applications. You can find the list of requirements in the following page <a href="https://facebook.github.io/react-native/docs/getting-started">https://facebook.github.io/react-native/docs/getting-started</a>, click in <code>Build Projects with Native Code</code> and follow the instructions.</p>
 
 <p>Next, download the boilerplate with the following commands:</p>
 
@@ -1385,17 +1377,167 @@ tutorial includes a boilerplate project which has all the basics already setup.<
 <li>Android: <code>yarn run android</code></li>
 </ul>
 
-<p>You will see instructions in the console on how to run in the Simulator or using the Expo client.</p>
+<p>Once the application is running start a session putting your favorite username. You will see a placeholder balance showing <code>$1000</code>, your <code>username</code> and <code>stellarAccount</code>. In the following session you will install the JS Stellar SDK and use it to show the account&#39;s real balance.</p>
+<h2 id='using-the-stellar-sdk-in-react-native-wip'>Using the Stellar-SDK in React Native [WIP]</h2><h3 id='adding-node-core-modules-and-globals-wip'>Adding Node core modules and globals [WIP]</h3>
+<p>Using the JS Stellar SDK requires extra setup because the package depends in some Node core modules like <code>crypto</code> or globals like <code>process</code>, which are not available in React Native.</p>
 
-<p>Next, you need to install the JS Stellar SDK in the React Native and then display the account balance.</p>
-<h2 id='installing-the-stellar-sdk-in-react-native'>Installing the Stellar-SDK in React Native</h2>
-<p>Introduce the Stellar-SDK polyfill and how to display an account data in a RN app.</p>
-<h2 id='creating-an-user-signup-flow'>Creating an user signup flow</h2>
-<p>Very simple user signup flow based in user name. It shows how to setup Stellar account, multisig and trustline schema.</p>
-<h2 id='depositing-quot-fiat-quot-into-your-wallet'>Depositing &quot;fiat&quot; into your wallet</h2>
-<p>A fake implementation in the wallet similar to transferring money from a bank.</p>
+<p>If you try to run the application and import the SDK, you will see an error like the following:</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/1b13041l020I0s2l0L3o/Image%202018-07-18%20at%201.29.16%20PM.png?X-CloudApp-Visitor-Id=49274&amp;v=60e47590" alt="Image%202018 07 18%20at%201.29.16%20pm" /></p>
+
+<p>This is a known issue in the React Native world and there is a solution for it. To solve the problem you need to install the package <a href="https://github.com/parshap/node-libs-react-native">node-libs-react-native
+</a> which provides the implementation for some of those modules and <a href="https://github.com/browserify/vm-browserify">vm-browserify</a>.</p>
+
+<p>Run the following commands:</p>
+
+<ul>
+<li><code>yarn add node-libs-react-native vm-browserify react-native-randombytes</code></li>
+<li><code>react-native link</code></li>
+</ul>
+<pre class="highlight javascript tab-javascript"><code><span class="c1">// rn-cli.config.js</span>
+<span class="kr">const</span> <span class="nx">extraNodeModules</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'node-libs-react-native'</span><span class="p">)</span>
+<span class="nx">extraNodeModules</span><span class="p">.</span><span class="nx">vm</span> <span class="o">=</span> <span class="nx">require</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="s1">'vm-browserify'</span><span class="p">)</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nx">getTransformModulePath</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">require</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="s2">"react-native-typescript-transformer"</span><span class="p">);</span>
+  <span class="p">},</span>
+  <span class="nx">getSourceExts</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s2">"ts"</span><span class="p">,</span> <span class="s2">"tsx"</span><span class="p">];</span>
+  <span class="p">},</span>
+  <span class="nx">extraNodeModules</span>
+<span class="p">};</span>
+</code></pre>
+<p>Edit the file <code>rn-cli.config.js</code> file in the root directory to look like the code in the right and then add to <code>index.js</code> in the root container the following at the top: <code>import &#39;node-libs-react-native/globals&#39;</code></p>
+
+<p>You can see the changes in pull <a href="https://github.com/abuiles/AnchorX/pull/10/files">request #10</a> the relevant pieces are:</p>
+
+<ul>
+<li><a href="https://github.com/abuiles/AnchorX/pull/10/files#diff-b9cfc7f2cdf78a7f4b91a753d10865a2">package.json</a></li>
+<li><a href="https://github.com/abuiles/AnchorX/pull/10/files#diff-41fdc10e1b5862877e4afa7e9176ee09">rn-cli.config.js</a></li>
+<li><a href="https://github.com/abuiles/AnchorX/pull/10/files#diff-168726dbe96b3ce427e7fedce31bb0bc">index.js</a></li>
+</ul>
+<h3 id='installing-the-sdk-and-writing-your-first-component-wip'>Installing the SDK and writing your first component [WIP]</h3>
+<p>Once you have all the required depencies to install the JS Stellar SDK, run the following command:</p>
+
+<ul>
+<li><code>yarn add stellar-sdk @types/stellar-sdk</code></li>
+</ul>
+
+<p>Next you need to create a new container component which will load the Stellar account from the ledger and then display the balance for AnchorX custom asset.</p>
+
+<p>The container component will have the following props:</p>
+
+<ul>
+<li><code>stellarAccount</code>: Stellar account id to load.</li>
+<li><code>asset</code>: since Stellar accounts can hold multiple assets, you&#39;ll tell explicitly to the component which asset to display.</li>
+</ul>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">import</span> <span class="o">*</span> <span class="nx">as</span> <span class="nx">React</span> <span class="nx">from</span> <span class="s1">'react'</span>
+<span class="kr">import</span> <span class="p">{</span>
+  <span class="nx">Platform</span><span class="p">,</span>
+  <span class="nx">StyleSheet</span><span class="p">,</span>
+  <span class="nx">View</span>
+<span class="p">}</span> <span class="nx">from</span> <span class="s1">'react-native'</span>
+
+<span class="kr">import</span> <span class="p">{</span>
+  <span class="nx">Asset</span><span class="p">,</span>
+  <span class="nx">AccountResponse</span><span class="p">,</span>
+  <span class="nx">Network</span><span class="p">,</span>
+  <span class="nx">Server</span>
+<span class="p">}</span> <span class="nx">from</span> <span class="s1">'stellar-sdk'</span>
+
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">Text</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'native-base'</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">styles</span> <span class="nx">as</span> <span class="nx">s</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'react-native-style-tachyons'</span>
+
+<span class="kr">import</span> <span class="nx">Loading</span> <span class="nx">from</span> <span class="s1">'../components/Loading'</span>
+
+<span class="kr">interface</span> <span class="nx">Props</span> <span class="p">{</span>
+  <span class="nl">accountId</span><span class="p">:</span> <span class="nx">string</span>
+  <span class="nl">asset</span><span class="p">:</span> <span class="nx">Asset</span>
+<span class="p">}</span>
+
+<span class="kr">interface</span> <span class="nx">State</span> <span class="p">{</span>
+  <span class="nl">sdkAccount</span><span class="p">:</span> <span class="nx">AccountResponse</span>
+<span class="p">}</span>
+
+<span class="kr">export</span> <span class="k">default</span> <span class="kr">class</span> <span class="nx">Balance</span> <span class="kr">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span><span class="o">&lt;</span><span class="nx">Props</span><span class="p">,</span> <span class="nx">State</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="nx">constructor</span><span class="p">(</span><span class="na">props</span><span class="p">:</span> <span class="nx">Props</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kr">super</span><span class="p">(</span><span class="nx">props</span><span class="p">)</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">state</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="p">}</span>
+
+  <span class="nx">async</span> <span class="nx">componentDidMount</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">accountId</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
+    <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">)</span>
+    <span class="kr">const</span> <span class="nx">sdkAccount</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">loadAccount</span><span class="p">(</span><span class="nx">accountId</span><span class="p">)</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span>
+      <span class="nx">sdkAccount</span>
+    <span class="p">})</span>
+  <span class="p">}</span>
+
+  <span class="nx">render</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">sdkAccount</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">asset</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">sdkAccount</span><span class="p">)</span> <span class="k">return</span> <span class="o">&lt;</span><span class="nx">Loading</span> <span class="o">/&gt;</span>
+
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">balance</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">sdkAccount</span><span class="p">.</span><span class="nx">balances</span><span class="p">.</span><span class="nx">find</span><span class="p">(({</span> <span class="nx">asset_code</span><span class="p">,</span> <span class="nx">asset_issuer</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="nx">asset_code</span> <span class="o">===</span> <span class="nx">asset</span><span class="p">.</span><span class="nx">code</span> <span class="o">&amp;&amp;</span> <span class="nx">asset_issuer</span> <span class="o">===</span> <span class="nx">asset</span><span class="p">.</span><span class="nx">issuer</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+      <span class="o">&lt;</span><span class="nx">View</span> <span class="nx">style</span><span class="o">=</span><span class="p">{[</span><span class="nx">s</span><span class="p">.</span><span class="nx">jcc</span><span class="p">,</span> <span class="nx">s</span><span class="p">.</span><span class="nx">aic</span><span class="p">]}</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">Text</span> <span class="nx">style</span><span class="o">=</span><span class="p">{</span><span class="nx">s</span><span class="p">.</span><span class="nx">f3</span><span class="p">}</span><span class="o">&gt;</span>
+          <span class="p">{</span><span class="nx">balance</span><span class="p">}</span>
+        <span class="o">&lt;</span><span class="sr">/Text</span><span class="err">&gt;
+</span>      <span class="o">&lt;</span><span class="sr">/View</span><span class="err">&gt;
+</span>    <span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Create the component by running <code>touch app/container/Balance</code> and then paste the content on the right.</p>
+
+<blockquote>
+<p>Update the Home container to render the Balance component</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code> <span class="kr">import</span> <span class="p">{</span> <span class="nx">NavigationScreenProps</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'react-navigation'</span>
+<span class="o">+</span><span class="kr">import</span> <span class="p">{</span> <span class="nx">Asset</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'stellar-sdk'</span>
+<span class="o">+</span>
+<span class="o">+</span><span class="kr">import</span> <span class="nx">Balance</span> <span class="nx">from</span> <span class="s1">'./Balance'</span>
+
+ <span class="kr">export</span> <span class="k">default</span> <span class="kr">class</span> <span class="nx">Home</span> <span class="kr">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span><span class="o">&lt;</span><span class="nx">NavigationScreenProps</span><span class="o">&gt;</span> <span class="p">{</span>
+   <span class="kr">static</span> <span class="nx">navigationOptions</span> <span class="o">=</span> <span class="p">{</span>
+<span class="p">@@</span> <span class="o">-</span><span class="mi">18</span><span class="p">,</span><span class="mi">6</span> <span class="o">+</span><span class="mi">21</span><span class="p">,</span><span class="mi">11</span> <span class="p">@@</span> <span class="kr">export</span> <span class="k">default</span> <span class="kr">class</span> <span class="nx">Home</span> <span class="kr">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span><span class="o">&lt;</span><span class="nx">NavigationScreenProps</span><span class="o">&gt;</span> <span class="p">{</span>
+   <span class="p">}</span>
+
+   <span class="nx">render</span><span class="p">()</span> <span class="p">{</span>
+<span class="o">+</span>    <span class="kr">const</span> <span class="nx">anchorXUSD</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Asset</span><span class="p">(</span>
+<span class="o">+</span>      <span class="s1">'USD'</span><span class="p">,</span>
+<span class="o">+</span>      <span class="s1">'GBX67BEOABQAELIP2XTC6JXHJPASKYCIQNS7WF6GWPSCBEAJEK74HK36'</span>
+<span class="o">+</span>    <span class="p">)</span>
+<span class="o">+</span>
+     <span class="k">return</span> <span class="p">(</span>
+       <span class="o">&lt;</span><span class="nx">CurrentUserQuery</span> <span class="nx">query</span><span class="o">=</span><span class="p">{</span><span class="nx">GET_CURRENT_USER_QUERY</span><span class="p">}</span><span class="o">&gt;</span>
+         <span class="p">{({</span> <span class="nx">loading</span><span class="p">,</span> <span class="nx">data</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+<span class="p">@@</span> <span class="o">-</span><span class="mi">58</span><span class="p">,</span><span class="mi">7</span> <span class="o">+</span><span class="mi">66</span><span class="p">,</span><span class="mi">9</span> <span class="p">@@</span> <span class="kr">export</span> <span class="k">default</span> <span class="kr">class</span> <span class="nx">Home</span> <span class="kr">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span><span class="o">&lt;</span><span class="nx">NavigationScreenProps</span><span class="o">&gt;</span> <span class="p">{</span>
+                      <span class="nx">s</span><span class="p">.</span><span class="nx">pa4</span>
+                    <span class="p">]}</span>
+                  <span class="o">&gt;</span>
+<span class="o">-</span>                   <span class="o">&lt;</span><span class="nx">Text</span><span class="o">&gt;</span><span class="nx">$1000</span><span class="o">&lt;</span><span class="sr">/Text</span><span class="err">&gt;
+</span><span class="o">+</span>                   <span class="o">&lt;</span><span class="nx">Balance</span>
+<span class="o">+</span>                     <span class="nx">accountId</span><span class="o">=</span><span class="p">{</span><span class="nx">data</span><span class="p">.</span><span class="nx">me</span><span class="p">.</span><span class="nx">stellarAccount</span><span class="p">}</span>
+<span class="o">+</span>                     <span class="nx">asset</span><span class="o">=</span><span class="p">{</span><span class="nx">anchorXUSD</span><span class="p">}</span> <span class="sr">/</span><span class="err">&gt;
+</span>                  <span class="o">&lt;</span><span class="sr">/View</span><span class="err">&gt;
+</span>                  <span class="o">&lt;</span><span class="nx">View</span><span class="o">&gt;</span>
+</code></pre>
+<p>In the <code>Home</code> container use the <code>Balance</code> container to display the account balance.</p>
+
+<p>If you run the app, you should see the balance in your AnchorX account.</p>
+
+<p>You can see the changes in this section in <a href="https://github.com/abuiles/AnchorX/pull/11">pull request #11</a>.</p>
 <h2 id='showing-account-transactions'>Showing account transactions</h2>
 <p>Implements the transaction history in the RN wallet.</p>
+<h2 id='depositing-quot-fiat-quot-into-your-wallet'>Depositing &quot;fiat&quot; into your wallet</h2>
+<p>A fake implementation in the wallet similar to transferring money from a bank.</p>
 <h2 id='sending-payments'>Sending payments</h2>
 <p>Flow for doing P2P payments.</p>
 <h2 id='cashing-out'>Cashing out</h2>
