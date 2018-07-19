@@ -334,7 +334,7 @@
                     <a href="#mobile-wallet-boilerplate" class="toc-h2 toc-link" data-title="mobile-wallet-boilerplate">Mobile wallet boilerplate</a>
                   </li>
                   <li>
-                    <a href="#using-the-stellar-sdk-in-react-native-wip" class="toc-h2 toc-link" data-title="using-the-stellar-sdk-in-react-native-wip">Using the Stellar-SDK in React Native [WIP]</a>
+                    <a href="#using-the-stellar-sdk-in-react-native" class="toc-h2 toc-link" data-title="using-the-stellar-sdk-in-react-native">Using the Stellar-SDK in React Native</a>
                   </li>
                   <li>
                     <a href="#showing-account-transactions" class="toc-h2 toc-link" data-title="showing-account-transactions">Showing account transactions</a>
@@ -1370,20 +1370,20 @@ tutorial includes a boilerplate project which has all the basics already setup.<
 <li><code>yarn install</code></li>
 </ol>
 
-<p>After the dependencies are installed, you should be able to run the Android or iOS version of the app with the following commands:</p>
+<p>After the dependencies are installed, you should be able to run the Android or iOS version with the following commands:</p>
 
 <ul>
 <li>iOS: <code>yarn run ios</code></li>
 <li>Android: <code>yarn run android</code></li>
 </ul>
 
-<p>Once the application is running start a session putting your favorite username. You will see a placeholder balance showing <code>$1000</code>, your <code>username</code> and <code>stellarAccount</code>. In the following session you will install the JS Stellar SDK and use it to show the account&#39;s real balance.</p>
-<h2 id='using-the-stellar-sdk-in-react-native-wip'>Using the Stellar-SDK in React Native [WIP]</h2><h3 id='adding-node-core-modules-and-globals-wip'>Adding Node core modules and globals [WIP]</h3>
+<p>Once the application is running start a session by putting your favorite username. You will see a placeholder balance showing <code>$1000</code>, your <code>username</code> and <code>stellarAccount</code>. In the following session you will install the JS Stellar SDK and use it to show the account&#39;s real balance.</p>
+<h2 id='using-the-stellar-sdk-in-react-native'>Using the Stellar-SDK in React Native</h2>
 <p>Using the JS Stellar SDK requires extra setup because the package depends in some Node core modules like <code>crypto</code> or globals like <code>process</code>, which are not available in React Native.</p>
 
 <p>If you try to run the application and import the SDK, you will see an error like the following:</p>
 
-<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/1b13041l020I0s2l0L3o/Image%202018-07-18%20at%201.29.16%20PM.png?X-CloudApp-Visitor-Id=49274&amp;v=60e47590" alt="Image%202018 07 18%20at%201.29.16%20pm" /></p>
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/1b13041l020I0s2l0L3o/%5B38cfda07cc131d3a1e9d71bf82fb8887%5D_Image+2018-07-18+at+1.29.16+PM.png?X-CloudApp-Visitor-Id=49274&amp;v=f0422f8c" alt="%5b38cfda07cc131d3a1e9d71bf82fb8887%5d image+2018 07 18+at+1.29.16+pm" /></p>
 
 <p>This is a known issue in the React Native world and there is a solution for it. To solve the problem you need to install the package <a href="https://github.com/parshap/node-libs-react-native">node-libs-react-native
 </a> which provides the implementation for some of those modules and <a href="https://github.com/browserify/vm-browserify">vm-browserify</a>.</p>
@@ -1410,15 +1410,15 @@ tutorial includes a boilerplate project which has all the basics already setup.<
 </code></pre>
 <p>Edit the file <code>rn-cli.config.js</code> file in the root directory to look like the code in the right and then add to <code>index.js</code> in the root container the following at the top: <code>import &#39;node-libs-react-native/globals&#39;</code></p>
 
-<p>You can see the changes in pull <a href="https://github.com/abuiles/AnchorX/pull/10/files">request #10</a> the relevant pieces are:</p>
+<p>You can see the changes in <a href="https://github.com/abuiles/AnchorX/pull/10/files">pull request #10</a>. The relevant pieces are:</p>
 
 <ul>
 <li><a href="https://github.com/abuiles/AnchorX/pull/10/files#diff-b9cfc7f2cdf78a7f4b91a753d10865a2">package.json</a></li>
 <li><a href="https://github.com/abuiles/AnchorX/pull/10/files#diff-41fdc10e1b5862877e4afa7e9176ee09">rn-cli.config.js</a></li>
 <li><a href="https://github.com/abuiles/AnchorX/pull/10/files#diff-168726dbe96b3ce427e7fedce31bb0bc">index.js</a></li>
 </ul>
-<h3 id='installing-the-sdk-and-writing-your-first-component-wip'>Installing the SDK and writing your first component [WIP]</h3>
-<p>Once you have all the required depencies to install the JS Stellar SDK, run the following command:</p>
+<h3 id='installing-the-sdk-and-writing-your-first-component'>Installing the SDK and writing your first component</h3>
+<p>Once you have the depencies to install the SDK, run the following command:</p>
 
 <ul>
 <li><code>yarn add stellar-sdk @types/stellar-sdk</code></li>
@@ -1469,6 +1469,7 @@ tutorial includes a boilerplate project which has all the basics already setup.<
   <span class="nx">async</span> <span class="nx">componentDidMount</span><span class="p">()</span> <span class="p">{</span>
     <span class="kr">const</span> <span class="p">{</span> <span class="nx">accountId</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
     <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">)</span>
+    <span class="c1">// load the account from Horizon</span>
     <span class="kr">const</span> <span class="nx">sdkAccount</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">loadAccount</span><span class="p">(</span><span class="nx">accountId</span><span class="p">)</span>
 
     <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span>
@@ -1494,10 +1495,10 @@ tutorial includes a boilerplate project which has all the basics already setup.<
   <span class="p">}</span>
 <span class="p">}</span>
 </code></pre>
-<p>Create the component by running <code>touch app/container/Balance</code> and then paste the content on the right.</p>
+<p>Create the component by running <code>touch app/containers/Balance.tsx</code> and then paste the content on the right.</p>
 
 <blockquote>
-<p>Update the Home container to render the Balance component</p>
+<p>Update <code>app/containers/Home.tsx</code> to render the Balance component.</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code> <span class="kr">import</span> <span class="p">{</span> <span class="nx">NavigationScreenProps</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'react-navigation'</span>
 <span class="o">+</span><span class="kr">import</span> <span class="p">{</span> <span class="nx">Asset</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'stellar-sdk'</span>
@@ -1529,11 +1530,13 @@ tutorial includes a boilerplate project which has all the basics already setup.<
 </span>                  <span class="o">&lt;</span><span class="sr">/View</span><span class="err">&gt;
 </span>                  <span class="o">&lt;</span><span class="nx">View</span><span class="o">&gt;</span>
 </code></pre>
-<p>In the <code>Home</code> container use the <code>Balance</code> container to display the account balance.</p>
+<p>After that, you will find the changes in the <code>Home</code> container to use <code>Balance</code>.</p>
 
 <p>If you run the app, you should see the balance in your AnchorX account.</p>
 
 <p>You can see the changes in this section in <a href="https://github.com/abuiles/AnchorX/pull/11">pull request #11</a>.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0D3Z3n1C2H2V3D321u2H/Screen%20Recording%202018-07-18%20at%2009.28%20PM.gif?X-CloudApp-Visitor-Id=49274&amp;v=780917c0" alt="Screen%20recording%202018 07 18%20at%2009.28%20pm" /></p>
 <h2 id='showing-account-transactions'>Showing account transactions</h2>
 <p>Implements the transaction history in the RN wallet.</p>
 <h2 id='depositing-quot-fiat-quot-into-your-wallet'>Depositing &quot;fiat&quot; into your wallet</h2>
