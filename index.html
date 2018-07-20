@@ -343,7 +343,10 @@
                     <a href="#using-streaming-mode" class="toc-h2 toc-link" data-title="using-streaming-mode">Using streaming mode</a>
                   </li>
                   <li>
-                    <a href="#showing-account-transactions" class="toc-h2 toc-link" data-title="showing-account-transactions">Showing account transactions</a>
+                    <a href="#payment-component" class="toc-h2 toc-link" data-title="payment-component">Payment component</a>
+                  </li>
+                  <li>
+                    <a href="#showing-payments" class="toc-h2 toc-link" data-title="showing-payments">Showing payments</a>
                   </li>
                   <li>
                     <a href="#depositing-quot-fiat-quot-into-your-wallet" class="toc-h2 toc-link" data-title="depositing-fiat-into-your-wallet">Depositing "fiat" into your wallet</a>
@@ -386,7 +389,7 @@
       <div class="content">
         <h1 id='building-your-own-venmo-with-stellar'>Building your own Venmo with Stellar</h1>
 <aside class="notice">
-Work in progress  ██████░░░░ 60%
+Work in progress  ███████░░░ 70%
 </aside>
 
 <p>Welcome to building your own Venmo with Stellar. This guide will show you how to create a product &quot;similar&quot; to Venmo using Stellar.</p>
@@ -1626,7 +1629,7 @@ You can find the documentation for the account builder <a href="https://stellar.
 <p>You can find the changes in this section in <a href="https://github.com/abuiles/AnchorX/pull/12">pull request #12</a>.</p>
 
 <p>Next, let&#39;s create  display the account payments.</p>
-<h2 id='showing-account-transactions'>Showing account transactions</h2><h3 id='payment-component'>Payment component</h3>
+<h2 id='payment-component'>Payment component</h2>
 <p>First you need to add a component to display a single payment. If the payment if a debit it will show the message &quot;You paid X&quot; and the value. If you are the receipient, then it shows &quot;X paid you&quot;.</p>
 
 <p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/3K3a1P2l0v1r2X3o2X3A/Screen%20Recording%202018-07-19%20at%2004.55%20PM.gif?X-CloudApp-Visitor-Id=49274&amp;v=b9dca21b" alt="Screen%20recording%202018 07 19%20at%2004.55%20pm" /></p>
@@ -1642,8 +1645,209 @@ You can find the documentation for the account builder <a href="https://stellar.
 <p>You can find the component implementation in <a href="https://github.com/abuiles/AnchorX/pull/13">pull request #13</a>.</p>
 
 <p>Next you&#39;ll write a container to load the payments and use the Payment component for each entry.</p>
-<h3 id='payments-component'>Payments component</h3>
+<h2 id='showing-payments'>Showing payments</h2>
+<blockquote>
+<p>Create the file <code>app/containers/Payments.tsx</code> with the following code:</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">import</span> <span class="o">*</span> <span class="nx">as</span> <span class="nx">React</span> <span class="nx">from</span> <span class="s1">'react'</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">View</span><span class="p">,</span> <span class="nx">StyleSheet</span><span class="p">,</span> <span class="nx">FlatList</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'react-native'</span>
+
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">Container</span><span class="p">,</span> <span class="nx">Content</span><span class="p">,</span> <span class="nx">Text</span><span class="p">,</span> <span class="nx">Button</span><span class="p">,</span> <span class="nx">Spinner</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'native-base'</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">styles</span> <span class="nx">as</span> <span class="nx">s</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'react-native-style-tachyons'</span>
+
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">Asset</span><span class="p">,</span> <span class="nx">PaymentOperationRecord</span><span class="p">,</span> <span class="nx">Server</span><span class="p">,</span> <span class="nx">Network</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'stellar-sdk'</span>
+
+<span class="kr">import</span> <span class="nx">Payment</span> <span class="nx">from</span> <span class="s1">'../components/Payment'</span>
+
+<span class="kr">interface</span> <span class="nx">Props</span> <span class="p">{</span>
+  <span class="nl">accountId</span><span class="p">:</span> <span class="nx">string</span>
+  <span class="nx">asset</span><span class="p">?:</span> <span class="nx">Asset</span>
+<span class="p">}</span>
+
+<span class="kr">interface</span> <span class="nx">State</span> <span class="p">{</span>
+  <span class="nl">loadMore</span><span class="p">:</span> <span class="kr">boolean</span>
+  <span class="nl">payments</span><span class="p">:</span> <span class="nx">PaymentOperationRecord</span><span class="p">[]</span>
+  <span class="nl">loading</span><span class="p">:</span> <span class="kr">boolean</span>
+  <span class="nx">closeStreaming</span><span class="p">?:</span> <span class="nx">any</span>
+<span class="p">}</span>
+
+
+<span class="kr">export</span> <span class="k">default</span> <span class="kr">class</span> <span class="nx">Payments</span> <span class="kr">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span><span class="o">&lt;</span><span class="nx">Props</span><span class="p">,</span> <span class="nx">State</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="nx">constructor</span><span class="p">(</span><span class="na">props</span><span class="p">:</span> <span class="nx">Props</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kr">super</span><span class="p">(</span><span class="nx">props</span><span class="p">)</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">state</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="na">loadMore</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="na">payments</span><span class="p">:</span> <span class="p">[],</span>
+      <span class="na">loading</span><span class="p">:</span> <span class="kc">false</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="nx">async</span> <span class="nx">loadPayments</span><span class="p">(</span><span class="nx">cursor</span><span class="p">?:</span> <span class="nx">string</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">accountId</span><span class="p">,</span> <span class="nx">asset</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">payments</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+    <span class="nx">Network</span><span class="p">.</span><span class="nx">useTestNetwork</span><span class="p">()</span>
+    <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">)</span>
+
+    <span class="c1">// Load payments for account in descending order, most recentfirst.</span>
+    <span class="kd">let</span> <span class="nx">builder</span> <span class="o">=</span> <span class="nx">stellarServer</span>
+      <span class="p">.</span><span class="nx">payments</span><span class="p">()</span>
+      <span class="p">.</span><span class="nx">forAccount</span><span class="p">(</span><span class="nx">accountId</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">order</span><span class="p">(</span><span class="s1">'desc'</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nx">cursor</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">builder</span><span class="p">.</span><span class="nx">cursor</span><span class="p">(</span><span class="nx">cursor</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">records</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">builder</span><span class="p">.</span><span class="nx">call</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nx">asset</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">records</span><span class="p">.</span><span class="nx">filter</span><span class="p">((</span><span class="nx">payment</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">payment</span><span class="p">.</span><span class="nx">asset_code</span> <span class="o">===</span> <span class="nx">asset</span><span class="p">.</span><span class="nx">code</span> <span class="o">&amp;&amp;</span> <span class="nx">payment</span><span class="p">.</span><span class="nx">asset_issuer</span> <span class="o">===</span> <span class="nx">asset</span><span class="p">.</span><span class="nx">issuer</span><span class="p">)</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">records</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="cm">/* Use `now` in the cursor to be notified of new payments. If you don't
+   * set the cursor to "now", then you'll be notified about all the
+   * payments since account's creation.*/</span>
+  <span class="nx">listenForPayments</span><span class="p">(</span><span class="nx">cursor</span> <span class="o">=</span> <span class="s1">'now'</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">closeStreaming</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nx">closeStreaming</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">try</span> <span class="p">{</span>
+        <span class="nx">closeStreaming</span><span class="p">()</span>
+      <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'error closing streaming'</span><span class="p">)</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">accountId</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
+
+    <span class="nx">Network</span><span class="p">.</span><span class="nx">useTestNetwork</span><span class="p">()</span>
+    <span class="kr">const</span> <span class="nx">server</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">)</span>
+
+    <span class="c1">// Notice how we are using PaymentOperationRecord from @types/stellar-sdk</span>
+    <span class="kd">let</span> <span class="nx">handleMessage</span> <span class="o">=</span> <span class="p">(</span><span class="na">payment</span><span class="p">:</span> <span class="nx">PaymentOperationRecord</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="kr">const</span> <span class="p">{</span> <span class="nx">asset</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
+      <span class="kr">const</span> <span class="p">{</span> <span class="nx">payments</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="nx">payment</span><span class="p">.</span><span class="nx">asset_code</span> <span class="o">===</span> <span class="nx">asset</span><span class="p">.</span><span class="nx">code</span> <span class="o">&amp;&amp;</span> <span class="nx">payment</span><span class="p">.</span><span class="nx">asset_issuer</span> <span class="o">===</span> <span class="nx">asset</span><span class="p">.</span><span class="nx">issuer</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span>
+          <span class="na">payments</span><span class="p">:</span> <span class="p">[</span><span class="nx">payment</span><span class="p">,</span> <span class="p">...</span><span class="nx">payments</span><span class="p">]</span>
+        <span class="p">})</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span>
+      <span class="na">closeStreaming</span><span class="p">:</span> <span class="nx">server</span><span class="p">.</span><span class="nx">payments</span><span class="p">()</span>
+        <span class="p">.</span><span class="nx">cursor</span><span class="p">(</span><span class="nx">cursor</span><span class="p">)</span>
+        <span class="p">.</span><span class="nx">forAccount</span><span class="p">(</span><span class="nx">accountId</span><span class="p">)</span>
+        <span class="p">.</span><span class="nx">stream</span><span class="p">({</span>
+          <span class="na">onmessage</span><span class="p">:</span> <span class="nx">handleMessage</span>
+        <span class="p">})</span>
+    <span class="p">})</span>
+  <span class="p">}</span>
+
+  <span class="cm">/* After the component mounts, load the first page of payments and
+   * setup streaming*/</span>
+  <span class="nx">async</span> <span class="nx">componentDidMount</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="nx">payments</span> <span class="o">=</span> <span class="nx">await</span> <span class="k">this</span><span class="p">.</span><span class="nx">loadPayments</span><span class="p">()</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span>
+      <span class="nx">payments</span>
+    <span class="p">})</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">listenForPayments</span><span class="p">()</span>
+  <span class="p">}</span>
+
+  <span class="nx">componentWillUnmount</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">closeStreaming</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="nx">closeStreaming</span> <span class="o">&amp;&amp;</span> <span class="nx">closeStreaming</span><span class="p">()</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'error closing streaming'</span><span class="p">)</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="cm">/* Method use for pagination, it gets calls when the end of the list is
+   * reached.  It calls the generic function loadPayments using the last
+   * item in payments as the cursor.
+   */</span>
+  <span class="nx">async</span> <span class="nx">fetchMoreData</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">accountId</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">payments</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+
+    <span class="kr">const</span> <span class="nx">cursor</span> <span class="o">=</span> <span class="nx">payments</span><span class="p">[</span><span class="nx">payments</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="nx">id</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span>
+      <span class="na">loading</span><span class="p">:</span> <span class="kc">true</span>
+    <span class="p">})</span>
+
+    <span class="kr">const</span> <span class="nx">nextPage</span> <span class="o">=</span> <span class="nx">await</span> <span class="k">this</span><span class="p">.</span><span class="nx">loadPayments</span><span class="p">(</span><span class="nx">cursor</span><span class="p">)</span>
+
+    <span class="kr">const</span> <span class="nx">state</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="na">loadMore</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="na">payments</span><span class="p">:</span> <span class="p">[...</span><span class="nx">payments</span><span class="p">,</span> <span class="p">...</span><span class="nx">nextPage</span><span class="p">],</span>
+      <span class="na">loading</span><span class="p">:</span> <span class="kc">false</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nx">nextPage</span><span class="p">.</span><span class="nx">length</span> <span class="o">===</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">loadMore</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="p">}</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+  <span class="p">}</span>
+
+  <span class="nx">render</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">accountId</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">loadMore</span><span class="p">,</span> <span class="nx">payments</span><span class="p">,</span> <span class="nx">loading</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+      <span class="o">&lt;</span><span class="nx">Container</span> <span class="nx">style</span><span class="o">=</span><span class="p">{{</span> <span class="na">backgroundColor</span><span class="p">:</span> <span class="s1">'#F5FCFF'</span> <span class="p">}}</span> <span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">FlatList</span>
+          <span class="nx">data</span><span class="o">=</span><span class="p">{</span><span class="nx">payments</span><span class="p">}</span>
+          <span class="nx">renderItem</span><span class="o">=</span><span class="p">{({</span> <span class="nx">item</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="o">&lt;</span><span class="nx">Payment</span> <span class="nx">key</span><span class="o">=</span><span class="p">{</span><span class="nx">item</span><span class="p">.</span><span class="nx">id</span><span class="p">}</span> <span class="nx">payment</span><span class="o">=</span><span class="p">{</span><span class="nx">item</span><span class="p">}</span> <span class="nx">account</span><span class="o">=</span><span class="p">{</span><span class="nx">accountId</span><span class="p">}</span> <span class="sr">/&gt;</span><span class="err">}
+</span>          <span class="nx">keyExtractor</span><span class="o">=</span><span class="p">{(</span><span class="nx">item</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">item</span><span class="p">.</span><span class="nx">id</span><span class="p">}</span>
+          <span class="nx">onEndReachedThreshold</span><span class="o">=</span><span class="p">{</span><span class="mf">0.2</span><span class="p">}</span>
+          <span class="nx">onEndReached</span><span class="o">=</span><span class="p">{({</span> <span class="nx">distanceFromEnd</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">loadMore</span> <span class="o">||</span> <span class="nx">loading</span><span class="p">)</span> <span class="p">{</span>
+              <span class="k">return</span>
+            <span class="p">}</span>
+
+            <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">fetchMoreData</span><span class="p">()</span>
+          <span class="p">}}</span>
+          <span class="nx">refreshing</span><span class="o">=</span><span class="p">{</span><span class="nx">loading</span><span class="p">}</span>
+          <span class="nx">ListFooterComponent</span><span class="o">=</span><span class="p">{</span><span class="nx">loading</span> <span class="o">&amp;&amp;</span> <span class="o">&lt;</span><span class="nx">Spinner</span> <span class="nx">color</span><span class="o">=</span><span class="s2">"blue"</span> <span class="o">/&gt;</span><span class="p">}</span>
+          <span class="nx">onRefresh</span><span class="o">=</span><span class="p">{()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">payments</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+              <span class="k">this</span><span class="p">.</span><span class="nx">listenForPayments</span><span class="p">(</span><span class="nx">payments</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">id</span><span class="p">)</span>
+            <span class="p">}</span>
+          <span class="p">}}</span>
+        <span class="sr">/</span><span class="err">&gt;
+</span>      <span class="o">&lt;</span><span class="sr">/Container</span><span class="err">&gt;
+</span>    <span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
 <p>To show transactions, you will follow a similar pattern to the one use in the previous section. Create a container component which will load the last page of payments using the <a href="https://stellar.github.io/js-stellar-sdk/Server.html#payments">payments method</a> in the Server class. And then use streaming from the <a href="https://stellar.github.io/js-stellar-sdk/PaymentCallBuilder.html">PaymentCallBuilder</a>.</p>
+
+<p>At this point most of the changes are related with React and building components. On the right you can see the component implementation. The following functions use the SDK:</p>
+
+<ul>
+<li><code>loadPayments</code>: Sets the server and loads the first page of payments.</li>
+<li><code>listenForPayments</code>: Set streaming.</li>
+<li><code>fetchMoreData</code>: Call when loading more payments.</li>
+</ul>
+
+<p>Also, noticed how you can use types defined in <code>@types/stellar-sdk</code> like <code>PaymentOperationRecord</code>.</p>
+
+<p>After creating the component, you can import it in the Home container and use it by passing the <code>accountId</code> and <code>asset</code>, you can see the change <a href="https://github.com/abuiles/AnchorX/pull/14/files#diff-32a848d19077743a2d26b348315714e3R75">here</a>.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/2N1v02411B0H2y43362n/Screen%20Recording%202018-07-20%20at%2011.06%20AM.gif?X-CloudApp-Visitor-Id=49274&amp;v=de150e07" alt="Screen%20recording%202018 07 20%20at%2011.06%20am" /></p>
+
+<p>You can see the the changes in <a href="https://github.com/abuiles/AnchorX/pull/14/files">pull request #14</a></p>
 <h2 id='depositing-quot-fiat-quot-into-your-wallet'>Depositing &quot;fiat&quot; into your wallet</h2>
 <p>A fake implementation in the wallet similar to transferring money from a bank.</p>
 <h2 id='sending-payments'>Sending payments</h2>
