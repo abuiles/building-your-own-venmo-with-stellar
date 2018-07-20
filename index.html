@@ -337,6 +337,12 @@
                     <a href="#using-the-stellar-sdk-in-react-native" class="toc-h2 toc-link" data-title="using-the-stellar-sdk-in-react-native">Using the Stellar-SDK in React Native</a>
                   </li>
                   <li>
+                    <a href="#balance-updates" class="toc-h2 toc-link" data-title="balance-updates">Balance updates</a>
+                  </li>
+                  <li>
+                    <a href="#using-streaming-mode" class="toc-h2 toc-link" data-title="using-streaming-mode">Using streaming mode</a>
+                  </li>
+                  <li>
                     <a href="#showing-account-transactions" class="toc-h2 toc-link" data-title="showing-account-transactions">Showing account transactions</a>
                   </li>
                   <li>
@@ -1537,8 +1543,107 @@ tutorial includes a boilerplate project which has all the basics already setup.<
 <p>You can see the changes in this section in <a href="https://github.com/abuiles/AnchorX/pull/11">pull request #11</a>.</p>
 
 <p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0D3Z3n1C2H2V3D321u2H/Screen%20Recording%202018-07-18%20at%2009.28%20PM.gif?X-CloudApp-Visitor-Id=49274&amp;v=780917c0" alt="Screen%20recording%202018 07 18%20at%2009.28%20pm" /></p>
-<h2 id='showing-account-transactions'>Showing account transactions</h2>
-<p>Implements the transaction history in the RN wallet.</p>
+<h2 id='balance-updates'>Balance updates</h2>
+<p>You can see your balance noew but if you send or receive USD, the balance won&#39;t update. The horizon server allows you to call some end-points in streaming mode using Server-Sent Events, account details is one of those end-points.</p>
+
+<p>In this chapter you will learn how to use the streaming mode to update the account balance.</p>
+
+<p>In the following GIF you can see how we need to refresh the app to see the balance updated.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0L3N0S2D223l3K1S3a2r/Screen%20Recording%202018-07-19%20at%2009.44%20AM.gif?X-CloudApp-Visitor-Id=49274&amp;v=e537cac7" alt="Screen%20recording%202018 07 19%20at%2009.44%20am" /></p>
+<pre class="highlight javascript"><code><span class="nx">mutation</span> <span class="p">{</span>
+  <span class="nx">credit</span><span class="p">(</span><span class="nx">amount</span><span class="p">:</span> <span class="s2">"10"</span><span class="p">,</span> <span class="nx">username</span><span class="p">:</span><span class="s2">"your-username"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">id</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>You can try it by going to <a href="https://anchorx-api.herokuapp.com/">https://anchorx-api.herokuapp.com/</a> and writing the mutation on the right using your username.</p>
+<h2 id='using-streaming-mode'>Using streaming mode</h2>
+<blockquote>
+<p>Edit <code>app/containers/Balance.tsx</code></p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code>   <span class="nx">async</span> <span class="nx">componentDidMount</span><span class="p">()</span> <span class="p">{</span>
+     <span class="kr">const</span> <span class="p">{</span> <span class="nx">accountId</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
+     <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">)</span>
+     <span class="kr">const</span> <span class="nx">sdkAccount</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">loadAccount</span><span class="p">(</span><span class="nx">accountId</span><span class="p">)</span>
+
+<span class="o">+</span>    <span class="c1">// Setup streaming to the accountId, this returns a function which</span>
+<span class="o">+</span>    <span class="c1">// you can use to close the stream.</span>
+<span class="o">+</span>    <span class="kd">let</span> <span class="nx">accountEventsClose</span> <span class="o">=</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">accounts</span><span class="p">().</span><span class="nx">accountId</span><span class="p">(</span><span class="nx">accountId</span><span class="p">).</span><span class="nx">stream</span><span class="p">({</span>
+<span class="o">+</span>      <span class="c1">// onmessage is called each time the ledger closes</span>
+<span class="o">+</span>      <span class="na">onmessage</span><span class="p">:</span> <span class="nx">res</span> <span class="o">=&gt;</span> <span class="p">{</span>
+<span class="o">+</span>        <span class="kr">const</span> <span class="p">{</span> <span class="nx">sdkAccount</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+<span class="o">+</span>
+<span class="o">+</span>        <span class="c1">// Check if balances changed and if they did update sdkAcount.balances</span>
+<span class="o">+</span>        <span class="k">if</span> <span class="p">(</span><span class="nx">sdkAccount</span><span class="p">.</span><span class="nx">balances</span> <span class="o">!==</span> <span class="nx">res</span><span class="p">.</span><span class="nx">balances</span><span class="p">)</span> <span class="p">{</span>
+<span class="o">+</span>          <span class="nx">sdkAccount</span><span class="p">.</span><span class="nx">balances</span> <span class="o">=</span> <span class="nx">res</span><span class="p">.</span><span class="nx">balances</span>
+<span class="o">+</span>
+<span class="o">+</span>          <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span>
+<span class="o">+</span>            <span class="na">sdkAccount</span><span class="p">:</span> <span class="nx">sdkAccount</span>
+<span class="o">+</span>          <span class="p">})</span>
+<span class="o">+</span>        <span class="p">}</span>
+<span class="o">+</span>      <span class="p">}</span>
+<span class="o">+</span>    <span class="p">});</span>
+<span class="o">+</span>
+<span class="o">+</span>    <span class="c1">// For convinience add this to the account so you can close</span>
+<span class="o">+</span>    <span class="c1">// on componentWillUnmount. hat-tip to StellarTerm ;)</span>
+<span class="o">+</span>    <span class="nx">sdkAccount</span><span class="p">.</span><span class="nx">close</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+<span class="o">+</span>      <span class="k">try</span> <span class="p">{</span>
+<span class="o">+</span>        <span class="nx">accountEventsClose</span><span class="p">();</span>
+<span class="o">+</span>      <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+<span class="o">+</span>        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'error closing account streaming'</span><span class="p">)</span>
+<span class="o">+</span>      <span class="p">}</span>
+<span class="o">+</span>    <span class="p">}</span>
+<span class="o">+</span>
+     <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span>
+       <span class="nx">sdkAccount</span>
+     <span class="p">})</span>
+   <span class="p">}</span>
+
+<span class="o">+</span>  <span class="nx">componentWillUnmount</span><span class="p">()</span> <span class="p">{</span>
+<span class="o">+</span>    <span class="kr">const</span> <span class="p">{</span> <span class="nx">sdkAccount</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+<span class="o">+</span>    <span class="c1">// Close the stream when unmounting the component</span>
+<span class="o">+</span>    <span class="nx">sdkAccount</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
+<span class="o">+</span>  <span class="p">}</span>
+<span class="o">+</span>
+   <span class="nx">render</span><span class="p">()</span> <span class="p">{</span>
+     <span class="kr">const</span> <span class="p">{</span> <span class="nx">sdkAccount</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+     <span class="kr">const</span> <span class="p">{</span> <span class="nx">asset</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
+<span class="p">}</span>
+</code></pre>
+<p>The SDK uses the builder pattern to help you interact with horizon and its different functionalities. Once you have an instance of the server, you can setup streaming by calling the following command: <code>stellarServer.accounts().accountId(accountId).stream({args})</code>.</p>
+
+<p>You need to update the lifecycle methods <code>componentDidMount</code> and <code>componentWillUnmount</code> in  <code>app/containers/Balance.tsx</code>. On the right you will find the additions with comments.</p>
+
+<aside class="notice">
+You can find the documentation for the account builder <a href="https://stellar.github.io/js-stellar-sdk/AccountCallBuilder.html">here</a>
+</aside>
+
+<p>In the GIF below you can see how the balance updates now after using streaming.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/2w3D461n0K3I1M0F2H2J/Screen%20Recording%202018-07-19%20at%2010.59%20AM.gif?X-CloudApp-Visitor-Id=49274&amp;v=cfe8eea8" alt="Screen%20recording%202018 07 19%20at%2010.59%20am" /></p>
+
+<p>You can find the changes in this section in <a href="https://github.com/abuiles/AnchorX/pull/12">pull request #12</a>.</p>
+
+<p>Next, let&#39;s create  display the account payments.</p>
+<h2 id='showing-account-transactions'>Showing account transactions</h2><h3 id='payment-component'>Payment component</h3>
+<p>First you need to add a component to display a single payment. If the payment if a debit it will show the message &quot;You paid X&quot; and the value. If you are the receipient, then it shows &quot;X paid you&quot;.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/3K3a1P2l0v1r2X3o2X3A/Screen%20Recording%202018-07-19%20at%2004.55%20PM.gif?X-CloudApp-Visitor-Id=49274&amp;v=b9dca21b" alt="Screen%20recording%202018 07 19%20at%2004.55%20pm" /></p>
+
+<p>The only thing concerning Stellar here is how you can use the TypeScript type to specify that the component will receive a <code>PaymentOperationRecord</code> as part of the props.</p>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">import</span> <span class="p">{</span> <span class="nx">PaymentOperationRecord</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'stellar-sdk'</span>
+
+<span class="kr">interface</span> <span class="nx">Props</span> <span class="p">{</span>
+  <span class="nl">account</span><span class="p">:</span> <span class="nx">string</span>
+  <span class="nl">payment</span><span class="p">:</span> <span class="nx">PaymentOperationRecord</span>
+<span class="p">}</span>
+</code></pre>
+<p>You can find the component implementation in <a href="https://github.com/abuiles/AnchorX/pull/13">pull request #13</a>.</p>
+
+<p>Next you&#39;ll write a container to load the payments and use the Payment component for each entry.</p>
+<h3 id='payments-component'>Payments component</h3>
+<p>To show transactions, you will follow a similar pattern to the one use in the previous section. Create a container component which will load the last page of payments using the <a href="https://stellar.github.io/js-stellar-sdk/Server.html#payments">payments method</a> in the Server class. And then use streaming from the <a href="https://stellar.github.io/js-stellar-sdk/PaymentCallBuilder.html">PaymentCallBuilder</a>.</p>
 <h2 id='depositing-quot-fiat-quot-into-your-wallet'>Depositing &quot;fiat&quot; into your wallet</h2>
 <p>A fake implementation in the wallet similar to transferring money from a bank.</p>
 <h2 id='sending-payments'>Sending payments</h2>
