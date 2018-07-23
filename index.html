@@ -360,6 +360,15 @@
                   <li>
                     <a href="#sending-payments" class="toc-h2 toc-link" data-title="sending-payments">Sending payments</a>
                   </li>
+                  <li>
+                    <a href="#new-payment-form" class="toc-h2 toc-link" data-title="new-payment-form">New Payment form</a>
+                  </li>
+                  <li>
+                    <a href="#new-payment-container" class="toc-h2 toc-link" data-title="new-payment-container">New Payment container</a>
+                  </li>
+                  <li>
+                    <a href="#conclusion-2" class="toc-h2 toc-link" data-title="conclusion">Conclusion</a>
+                  </li>
               </ul>
           </li>
           <li>
@@ -381,7 +390,7 @@
       <div class="content">
         <h1 id='building-your-own-venmo-with-stellar'>Building your own Venmo with Stellar</h1>
 <aside class="notice">
-Work in progress █████████░░░ 75%
+Work in progress ████████░░ 85%
 </aside>
 
 <p>Welcome to building your own Venmo with Stellar. This guide will show you how to create a product &quot;similar&quot; to Venmo using Stellar.</p>
@@ -1963,7 +1972,118 @@ You can find the documentation for the account builder <a href="https://stellar.
 
 <p>Next you will implement the final screen which is which will allow you to send money to other AnchorX users, using their <code>username</code>.</p>
 <h2 id='sending-payments'>Sending payments</h2>
-<p>Flow for doing P2P payments.</p>
+<p>To send new payments you need to create a payment form and then change the new payment container to render the form. The boilerplate has two screens, the first one is meant to be used for searching the recipient like in Venmo and the second one to input the amount, however, this tutorial won&#39;t include the search part and it would be left as an exercise to the reader as mapping the Stellar address to real usernames in the payments list. The payment form will take the recipient&#39;s username and the amount and then call the payment mutation.</p>
+<h2 id='new-payment-form'>New Payment form</h2><pre class="highlight javascript tab-javascript"><code><span class="kr">import</span> <span class="o">*</span> <span class="nx">as</span> <span class="nx">React</span> <span class="nx">from</span> <span class="s1">'react'</span><span class="p">;</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">Alert</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'react-native'</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">Container</span><span class="p">,</span> <span class="nx">Content</span><span class="p">,</span> <span class="nx">Form</span><span class="p">,</span> <span class="nx">Item</span><span class="p">,</span> <span class="nx">Input</span><span class="p">,</span> <span class="nx">Label</span><span class="p">,</span> <span class="nx">Button</span><span class="p">,</span> <span class="nx">Text</span><span class="p">,</span> <span class="nx">Spinner</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'native-base'</span><span class="p">;</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">styles</span> <span class="nx">as</span> <span class="nx">s</span> <span class="p">}</span> <span class="nx">from</span> <span class="s2">"react-native-style-tachyons"</span><span class="p">;</span>
+
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">Transaction</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'../Types'</span>
+
+<span class="kr">interface</span> <span class="nx">Props</span> <span class="p">{</span>
+  <span class="nl">send</span><span class="p">:</span> <span class="p">(</span><span class="nx">username</span><span class="p">:</span> <span class="nx">string</span><span class="p">,</span> <span class="nx">amount</span><span class="p">:</span> <span class="nx">string</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">Promise</span><span class="o">&lt;</span><span class="nx">Transaction</span><span class="o">&gt;</span>
+  <span class="nx">didSend</span><span class="p">:</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="k">void</span>
+<span class="p">}</span>
+
+<span class="kr">interface</span> <span class="nx">State</span> <span class="p">{</span>
+  <span class="nl">amount</span><span class="p">:</span> <span class="nx">string</span>
+  <span class="nl">username</span><span class="p">:</span> <span class="nx">string</span>
+  <span class="nl">sending</span><span class="p">:</span> <span class="kr">boolean</span>
+<span class="p">}</span>
+
+<span class="kr">class</span> <span class="nx">PaymentForm</span> <span class="kr">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span><span class="o">&lt;</span><span class="nx">Props</span><span class="p">,</span> <span class="nx">State</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="nx">constructor</span><span class="p">(</span><span class="na">props</span><span class="p">:</span> <span class="nx">Props</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kr">super</span><span class="p">(</span><span class="nx">props</span><span class="p">)</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">state</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="na">amount</span><span class="p">:</span> <span class="s1">''</span><span class="p">,</span>
+      <span class="na">username</span><span class="p">:</span> <span class="s1">''</span><span class="p">,</span>
+      <span class="na">sending</span><span class="p">:</span> <span class="kc">false</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="nx">async</span> <span class="nx">send</span><span class="p">():</span> <span class="nx">Promise</span><span class="o">&lt;</span><span class="nx">Transaction</span><span class="o">&gt;</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">username</span><span class="p">,</span> <span class="nx">amount</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span>
+      <span class="na">sending</span><span class="p">:</span> <span class="kc">true</span>
+    <span class="p">})</span>
+
+    <span class="kr">const</span> <span class="nx">transaction</span> <span class="o">=</span> <span class="nx">await</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">username</span><span class="p">,</span> <span class="nx">amount</span><span class="p">)</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span>
+      <span class="na">sending</span><span class="p">:</span> <span class="kc">false</span>
+    <span class="p">})</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">props</span><span class="p">.</span><span class="nx">didSend</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="nx">transaction</span>
+  <span class="p">}</span>
+
+  <span class="nx">render</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">amount</span><span class="p">,</span> <span class="nx">username</span><span class="p">,</span> <span class="nx">sending</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+      <span class="o">&lt;</span><span class="nx">Container</span> <span class="nx">style</span><span class="o">=</span><span class="p">{{</span><span class="na">backgroundColor</span><span class="p">:</span> <span class="s1">'#F5FCFF'</span><span class="p">}}</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="nx">Content</span> <span class="nx">scrollEnabled</span><span class="o">=</span><span class="p">{</span><span class="kc">false</span><span class="p">}</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="nx">Form</span><span class="o">&gt;</span>
+            <span class="o">&lt;</span><span class="nx">Item</span> <span class="nx">floatingLabel</span><span class="o">&gt;</span>
+              <span class="o">&lt;</span><span class="nx">Label</span><span class="o">&gt;</span><span class="nx">Recipient</span> <span class="nx">username</span><span class="o">&lt;</span><span class="sr">/Label</span><span class="err">&gt;
+</span>              <span class="o">&lt;</span><span class="nx">Input</span>
+                <span class="nx">onChangeText</span><span class="o">=</span><span class="p">{(</span><span class="nx">username</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span> <span class="nx">username</span> <span class="p">})}</span>
+                <span class="nx">value</span><span class="o">=</span><span class="p">{</span><span class="nx">username</span><span class="p">}</span>
+                <span class="nx">autoFocus</span><span class="o">=</span><span class="p">{</span><span class="kc">true</span><span class="p">}</span>
+                <span class="nx">autoCorrect</span><span class="o">=</span><span class="p">{</span><span class="kc">false</span><span class="p">}</span>
+                <span class="nx">autoCapitalize</span><span class="o">=</span><span class="p">{</span><span class="s2">"none"</span><span class="p">}</span>
+              <span class="sr">/</span><span class="err">&gt;
+</span>            <span class="o">&lt;</span><span class="sr">/Item</span><span class="err">&gt;
+</span>            <span class="o">&lt;</span><span class="nx">Item</span> <span class="nx">floatingLabel</span><span class="o">&gt;</span>
+              <span class="o">&lt;</span><span class="nx">Label</span><span class="o">&gt;</span><span class="nx">Amount</span><span class="o">&lt;</span><span class="sr">/Label</span><span class="err">&gt;
+</span>              <span class="o">&lt;</span><span class="nx">Input</span>
+                <span class="nx">onChangeText</span><span class="o">=</span><span class="p">{(</span><span class="nx">amount</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">setState</span><span class="p">({</span> <span class="nx">amount</span> <span class="p">})}</span>
+                <span class="nx">value</span><span class="o">=</span><span class="p">{</span><span class="nx">amount</span><span class="p">}</span>
+                <span class="nx">keyboardType</span><span class="o">=</span><span class="p">{</span><span class="s1">'decimal-pad'</span><span class="p">}</span>
+                <span class="nx">autoCorrect</span><span class="o">=</span><span class="p">{</span><span class="kc">false</span><span class="p">}</span>
+                <span class="nx">autoCapitalize</span><span class="o">=</span><span class="p">{</span><span class="s2">"none"</span><span class="p">}</span>
+              <span class="sr">/</span><span class="err">&gt;
+</span>            <span class="o">&lt;</span><span class="sr">/Item</span><span class="err">&gt;
+</span>            <span class="p">{</span><span class="o">!</span><span class="nx">sending</span> <span class="o">&amp;&amp;</span> <span class="p">(</span>
+               <span class="o">&lt;</span><span class="nx">Button</span> <span class="nx">full</span> <span class="nx">style</span><span class="o">=</span><span class="p">{[</span><span class="nx">s</span><span class="p">.</span><span class="nx">mt4</span><span class="p">]}</span> <span class="nx">onPress</span><span class="o">=</span><span class="p">{()</span> <span class="o">=&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">send</span><span class="p">()}</span><span class="o">&gt;</span>
+                 <span class="o">&lt;</span><span class="nx">Text</span><span class="o">&gt;</span><span class="nx">Send</span><span class="o">&lt;</span><span class="sr">/Text</span><span class="err">&gt;
+</span>               <span class="o">&lt;</span><span class="sr">/Button</span><span class="err">&gt;
+</span>            <span class="p">)}</span>
+            <span class="p">{</span><span class="nx">sending</span> <span class="o">&amp;&amp;</span> <span class="o">&lt;</span><span class="nx">Spinner</span> <span class="nx">color</span><span class="o">=</span><span class="s2">"blue"</span> <span class="o">/&gt;</span><span class="p">}</span>
+          <span class="o">&lt;</span><span class="sr">/Form</span><span class="err">&gt;
+</span>        <span class="o">&lt;</span><span class="sr">/Content</span><span class="err">&gt;
+</span>      <span class="o">&lt;</span><span class="sr">/Container</span><span class="err">&gt;
+</span>    <span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">export</span> <span class="k">default</span> <span class="nx">PaymentForm</span>
+</code></pre>
+<p>First you need to add a form to send new payments. The code on the right shows you the component used in the GIF below.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/1U3Z1z1B2x2l1J2H3X1C/Screen%20Recording%202018-07-23%20at%2011.19%20AM.gif?X-CloudApp-Visitor-Id=49274&amp;v=cf6755fb" alt="Screen%20recording%202018 07 23%20at%2011.19%20am" /></p>
+
+<p>You can see the implementation in <a href="https://github.com/abuiles/AnchorX/pull/18/files">pull request #18</a>. Next let&#39;s update the new payment container to use the payment form and add a new mutation for payments.</p>
+<h2 id='new-payment-container'>New Payment container</h2>
+<p>You new to use the payment form component in the new payment container. Also, you need to add a new mutation component for <code>payment</code>. The following GIF shows the functionality working:</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/1D2Y112X0X1t261H1S0P/Screen%20Recording%202018-07-23%20at%2012.10%20PM.gif?X-CloudApp-Visitor-Id=49274&amp;v=ba6f5c5a" alt="Screen%20recording%202018 07 23%20at%2012.10%20pm" /></p>
+
+<p>You can find the changes in <a href="https://github.com/abuiles/AnchorX/pull/19/files">pull request #19</a>. The following are the relevant parts of that PR:</p>
+
+<ul>
+<li><code>Mutation</code>: <a href="https://github.com/abuiles/AnchorX/pull/19/files#diff-6b176d09842db5660d3df5ad191d4c67R69">https://github.com/abuiles/AnchorX/pull/19/files#diff-e36e4c2d86d36183ccec7eb4f7090ee4</a></li>
+<li><code>PaymentForm</code>: <a href="https://github.com/abuiles/AnchorX/pull/19/files#diff-6b176d09842db5660d3df5ad191d4c67R69">https://github.com/abuiles/AnchorX/pull/19/files#diff-6b176d09842db5660d3df5ad191d4c67R69</a></li>
+</ul>
+<h2 id='conclusion-2'>Conclusion</h2>
+<p>Now you have a basic clone of Venmo using Stellar. In this section you learned how to build a mobile wallet using the JS Stellar SDK in React Native and how to use to do things like read an  account from the ledger or use streaming. There are many more features that could be build but they will be left as an exercise to the reader. For example, you could add a resolver which takes a Stellar account and returns the username associated with that account.</p>
+
+<p>As mentioned at the beginning of this tutorial, AnchorX takes a different approach to other anchors since it manages users account. You could try modifying this wallet to allow each user to manage their own private keys and then use AnchorX to resolver usernames to Stellar addresses.</p>
+
+<p>Before finishing the tutorial, you will learn about some best practices around account management and security. I hope you enjoy this tutorial and if you have questions or suggestions, you can create an issue in the GitHub repo <a href="https://github.com/abuiles/building-your-own-venmo-with-stellar">here</a>.</p>
 <h1 id='best-practices'>Best practices</h1>
 <p>Best practices for managing issuing accounts, signing transactions on behalf of users, etc.</p>
 <h1 id='f-a-q'>F.A.Q</h1>
