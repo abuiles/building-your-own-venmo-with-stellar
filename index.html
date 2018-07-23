@@ -349,29 +349,21 @@
                     <a href="#showing-payments" class="toc-h2 toc-link" data-title="showing-payments">Showing payments</a>
                   </li>
                   <li>
-                    <a href="#depositing-quot-fiat-quot-into-your-wallet" class="toc-h2 toc-link" data-title="depositing-fiat-into-your-wallet">Depositing "fiat" into your wallet</a>
+                    <a href="#depositing-and-withdrawing-fiat-from-the-wallet" class="toc-h2 toc-link" data-title="depositing-and-withdrawing-fiat-from-the-wallet">Depositing and withdrawing fiat from the wallet</a>
+                  </li>
+                  <li>
+                    <a href="#deposits" class="toc-h2 toc-link" data-title="deposits">Deposits</a>
+                  </li>
+                  <li>
+                    <a href="#withdrawals" class="toc-h2 toc-link" data-title="withdrawals">Withdrawals</a>
                   </li>
                   <li>
                     <a href="#sending-payments" class="toc-h2 toc-link" data-title="sending-payments">Sending payments</a>
-                  </li>
-                  <li>
-                    <a href="#cashing-out" class="toc-h2 toc-link" data-title="cashing-out">Cashing out</a>
                   </li>
               </ul>
           </li>
           <li>
             <a href="#best-practices" class="toc-h1 toc-link" data-title="best-practices">Best practices</a>
-          </li>
-          <li>
-            <a href="#security" class="toc-h1 toc-link" data-title="security">Security</a>
-              <ul class="toc-list-h2">
-                  <li>
-                    <a href="#infrastructure" class="toc-h2 toc-link" data-title="infrastructure">Infrastructure</a>
-                  </li>
-                  <li>
-                    <a href="#keeping-keys-secure" class="toc-h2 toc-link" data-title="keeping-keys-secure">Keeping keys secure</a>
-                  </li>
-              </ul>
           </li>
           <li>
             <a href="#f-a-q" class="toc-h1 toc-link" data-title="f-a-q">F.A.Q</a>
@@ -389,7 +381,7 @@
       <div class="content">
         <h1 id='building-your-own-venmo-with-stellar'>Building your own Venmo with Stellar</h1>
 <aside class="notice">
-Work in progress  ███████░░░ 70%
+Work in progress █████████░░░ 75%
 </aside>
 
 <p>Welcome to building your own Venmo with Stellar. This guide will show you how to create a product &quot;similar&quot; to Venmo using Stellar.</p>
@@ -1847,76 +1839,134 @@ You can find the documentation for the account builder <a href="https://stellar.
 
 <p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/2N1v02411B0H2y43362n/Screen%20Recording%202018-07-20%20at%2011.06%20AM.gif?X-CloudApp-Visitor-Id=49274&amp;v=de150e07" alt="Screen%20recording%202018 07 20%20at%2011.06%20am" /></p>
 
-<p>You can see the the changes in <a href="https://github.com/abuiles/AnchorX/pull/14/files">pull request #14</a></p>
-<h2 id='depositing-quot-fiat-quot-into-your-wallet'>Depositing &quot;fiat&quot; into your wallet</h2>
-<p>A fake implementation in the wallet similar to transferring money from a bank.</p>
+<p>You can see the the changes in <a href="https://github.com/abuiles/AnchorX/pull/14/files">pull request #14</a>.</p>
+<h2 id='depositing-and-withdrawing-fiat-from-the-wallet'>Depositing and withdrawing fiat from the wallet</h2>
+<p>In this section you will add two screens to deposit or withdraw money from AnchorX.</p>
+
+<p>First you need to add a transfer form component which you will reuse for both operations.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/1i2B2R3w2H2t3u1X1N3Q/Screen%20Recording%202018-07-23%20at%2008.02%20AM.gif?X-CloudApp-Visitor-Id=49274&amp;v=b8034496" alt="Screen%20recording%202018 07 23%20at%2008.02%20am" /></p>
+
+<p>In <a href="https://github.com/abuiles/AnchorX/pull/15">pull request #15</a> you can find the implementation for the component displayed in the GIF above. It takes as <code>props</code> a function which call the mutation credit or debit. Next, you will find the implantation for both containers.</p>
+<h2 id='deposits'>Deposits</h2>
+<blockquote>
+<p>The content below belongs to app/containers/Deposit.tsx</p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">import</span> <span class="o">*</span> <span class="nx">as</span> <span class="nx">React</span> <span class="nx">from</span> <span class="s1">'react'</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">View</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'react-native'</span>
+
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">NavigationScreenProps</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'react-navigation'</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">Body</span><span class="p">,</span> <span class="nx">Button</span><span class="p">,</span> <span class="nx">Container</span><span class="p">,</span> <span class="nx">Content</span><span class="p">,</span> <span class="nx">Header</span><span class="p">,</span> <span class="nx">Icon</span><span class="p">,</span> <span class="nx">Left</span><span class="p">,</span> <span class="nx">Right</span><span class="p">,</span> <span class="nx">Text</span><span class="p">,</span> <span class="nx">Title</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'native-base'</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">styles</span> <span class="nx">as</span> <span class="nx">s</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'react-native-style-tachyons'</span>
+<span class="kr">import</span> <span class="nx">layoutStyles</span> <span class="nx">from</span> <span class="s1">'../styles/layout'</span>
+<span class="kr">import</span> <span class="nx">DismissableStackNavigator</span> <span class="nx">from</span> <span class="s1">'./DismissableStackNavigator'</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">Transaction</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'../Types'</span>
+<span class="kr">import</span> <span class="nx">TransferForm</span> <span class="nx">from</span> <span class="s1">'../components/TransferForm'</span>
+<span class="kr">import</span> <span class="nx">CreditDebitMutation</span><span class="p">,</span> <span class="p">{</span> <span class="nx">CREDIT_MUTATION</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'../mutations/CreditDebit'</span>
+<span class="kr">import</span> <span class="nx">CurrentUserQuery</span><span class="p">,</span> <span class="p">{</span> <span class="nx">GET_CURRENT_USER_QUERY</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">'../queries/CurrentUser'</span>
+
+<span class="kr">export</span> <span class="kr">class</span> <span class="nx">DepositScreen</span> <span class="kr">extends</span> <span class="nx">React</span><span class="p">.</span><span class="nx">Component</span><span class="o">&lt;</span><span class="nx">NavigationScreenProps</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="nx">async</span> <span class="nx">deposit</span><span class="p">(</span><span class="nx">mutation</span><span class="p">,</span> <span class="na">username</span><span class="p">:</span> <span class="nx">string</span><span class="p">,</span> <span class="na">amount</span><span class="p">:</span> <span class="nx">string</span><span class="p">):</span> <span class="nx">Promise</span><span class="o">&lt;</span><span class="nx">Transaction</span><span class="o">&gt;</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">data</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">mutation</span><span class="p">({</span>
+      <span class="na">variables</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nx">username</span><span class="p">,</span>
+        <span class="nx">amount</span>
+      <span class="p">}</span>
+    <span class="p">})</span>
+
+    <span class="k">return</span> <span class="nx">data</span><span class="p">.</span><span class="nx">credit</span>
+  <span class="p">}</span>
+
+  <span class="nx">didSend</span><span class="p">():</span> <span class="k">void</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">props</span><span class="p">.</span><span class="nx">navigation</span><span class="p">.</span><span class="nx">navigate</span><span class="p">(</span><span class="s1">'Home'</span><span class="p">)</span>
+  <span class="p">}</span>
+
+  <span class="nx">render</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">navigation</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
+
+    <span class="kr">const</span> <span class="nx">userSelected</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="nx">navigation</span><span class="p">.</span><span class="nx">navigate</span><span class="p">(</span><span class="s1">'PaymentDetails'</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span>
+      <span class="o">&lt;</span><span class="nx">CurrentUserQuery</span> <span class="nx">query</span><span class="o">=</span><span class="p">{</span><span class="nx">GET_CURRENT_USER_QUERY</span><span class="p">}</span><span class="o">&gt;</span>
+        <span class="p">{({</span> <span class="nx">loading</span><span class="p">,</span> <span class="nx">data</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+           <span class="k">if</span> <span class="p">(</span><span class="nx">loading</span><span class="p">)</span> <span class="p">{</span>
+             <span class="k">return</span> <span class="o">&lt;</span><span class="nx">Loading</span> <span class="o">/&gt;</span>
+           <span class="p">}</span>
+
+           <span class="kr">const</span> <span class="p">{</span> <span class="nx">me</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">data</span>
+           <span class="k">return</span> <span class="p">(</span>
+             <span class="o">&lt;</span><span class="nx">Container</span> <span class="nx">style</span><span class="o">=</span><span class="p">{{</span><span class="na">backgroundColor</span><span class="p">:</span> <span class="s1">'#F5FCFF'</span><span class="p">}}</span><span class="o">&gt;</span>
+               <span class="o">&lt;</span><span class="nx">Header</span> <span class="nx">style</span><span class="o">=</span><span class="p">{</span><span class="nx">layoutStyles</span><span class="p">.</span><span class="nx">header</span><span class="p">}</span><span class="o">&gt;</span>
+                 <span class="o">&lt;</span><span class="nx">Left</span><span class="o">&gt;</span>
+                   <span class="o">&lt;</span><span class="nx">Button</span>
+                     <span class="nx">transparent</span>
+                     <span class="nx">onPress</span><span class="o">=</span><span class="p">{()</span> <span class="o">=&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span><span class="p">.</span><span class="nx">screenProps</span><span class="p">.</span><span class="nx">dismiss</span><span class="p">()}</span><span class="o">&gt;</span>
+                     <span class="o">&lt;</span><span class="nx">Icon</span> <span class="nx">name</span><span class="o">=</span><span class="s1">'close'</span> <span class="o">/&gt;</span>
+                   <span class="o">&lt;</span><span class="sr">/Button</span><span class="err">&gt;
+</span>                 <span class="o">&lt;</span><span class="sr">/Left</span><span class="err">&gt;
+</span>                 <span class="o">&lt;</span><span class="nx">Body</span><span class="o">&gt;</span>
+                   <span class="o">&lt;</span><span class="nx">Title</span><span class="o">&gt;</span><span class="nx">Deposit</span><span class="o">&lt;</span><span class="sr">/Title</span><span class="err">&gt;
+</span>                 <span class="o">&lt;</span><span class="sr">/Body</span><span class="err">&gt;
+</span>                 <span class="o">&lt;</span><span class="nx">Right</span> <span class="o">/&gt;</span>
+               <span class="o">&lt;</span><span class="sr">/Header</span><span class="err">&gt;
+</span>               <span class="o">&lt;</span><span class="nx">Content</span> <span class="nx">scrollEnabled</span><span class="o">=</span><span class="p">{</span><span class="kc">false</span><span class="p">}</span><span class="o">&gt;</span>
+                 <span class="o">&lt;</span><span class="nx">CreditDebitMutation</span> <span class="nx">mutation</span><span class="o">=</span><span class="p">{</span><span class="nx">CREDIT_MUTATION</span><span class="p">}</span><span class="o">&gt;</span>
+                   <span class="p">{(</span><span class="nx">mutation</span><span class="p">,</span> <span class="p">{</span> <span class="nx">data</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                      <span class="k">return</span> <span class="p">(</span>
+                        <span class="o">&lt;</span><span class="nx">TransferForm</span> <span class="nx">send</span><span class="o">=</span><span class="p">{</span><span class="k">this</span><span class="p">.</span><span class="nx">deposit</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">mutation</span><span class="p">,</span> <span class="nx">me</span><span class="p">.</span><span class="nx">username</span><span class="p">)}</span> <span class="nx">didSend</span><span class="o">=</span><span class="p">{</span><span class="k">this</span><span class="p">.</span><span class="nx">didSend</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">)}</span> <span class="sr">/</span><span class="err">&gt;
+</span>                      <span class="p">)</span>
+                   <span class="p">}}</span>
+                 <span class="o">&lt;</span><span class="sr">/CreditDebitMutation</span><span class="err">&gt;
+</span>               <span class="o">&lt;</span><span class="sr">/Content</span><span class="err">&gt;
+</span>             <span class="o">&lt;</span><span class="sr">/Container</span><span class="err">&gt;
+</span>           <span class="p">)</span>
+        <span class="p">}}</span>
+      <span class="o">&lt;</span><span class="sr">/CurrentUserQuery</span><span class="err">&gt;
+</span>    <span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">export</span> <span class="k">default</span> <span class="nx">DismissableStackNavigator</span><span class="p">(</span>
+  <span class="p">{</span>
+    <span class="na">Deposit</span><span class="p">:</span> <span class="p">{</span>
+      <span class="na">screen</span><span class="p">:</span> <span class="nx">DepositScreen</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="na">initialRouteName</span><span class="p">:</span> <span class="s1">'Deposit'</span><span class="p">,</span>
+    <span class="na">headerMode</span><span class="p">:</span> <span class="s1">'none'</span><span class="p">,</span>
+    <span class="na">cardStyle</span><span class="p">:</span> <span class="p">{</span>
+      <span class="na">backgroundColor</span><span class="p">:</span> <span class="s1">'#F5FCFF'</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">)</span>
+</code></pre>
+<p>To deposit money into the account, you will create a new container which will use the deposit mutation and the transfer form. On the right you can see the implementation for such container. For this tutorial, assume your bank account has been linked when you went through signup.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/2n1c1D15440a0D0W3q0S/Screen%20Recording%202018-07-23%20at%2010.09%20AM.gif?X-CloudApp-Visitor-Id=49274&amp;v=57d5f857" alt="Screen%20recording%202018 07 23%20at%2010.09%20am" /></p>
+
+<p><a href="https://github.com/abuiles/AnchorX/pull/16">Pull request #16</a> shows you all the implementation details. The following are some of the relevant changes:</p>
+
+<ul>
+<li>Mutation component: <a href="https://github.com/abuiles/AnchorX/pull/16/files#diff-edc1bb1b69c5a2a4ae142da5ad61e9c1">https://github.com/abuiles/AnchorX/pull/16/files#diff-edc1bb1b69c5a2a4ae142da5ad61e9c1</a></li>
+<li>Add a new option to the menu bar: <a href="https://github.com/abuiles/AnchorX/pull/16/files#diff-82d98b5838f0e7e19e05fe1a563eb307R34">https://github.com/abuiles/AnchorX/pull/16/files#diff-82d98b5838f0e7e19e05fe1a563eb307R34</a></li>
+<li>Extend <code>TransferForm</code> to receive a <code>didSend</code> callback: <a href="https://github.com/abuiles/AnchorX/pull/16/files#diff-76291595d5a283ba48caa79aca053ac0L9">https://github.com/abuiles/AnchorX/pull/16/files#diff-76291595d5a283ba48caa79aca053ac0L9</a></li>
+</ul>
+
+<p>Next, you will add the withdrawals container.</p>
+<h2 id='withdrawals'>Withdrawals</h2>
+<p>Withdrawals are very similar to deposits, the only thing that changes is the mututation used in the callback. Instead of using <code>credit</code> you will use <code>debit</code>.</p>
+
+<p>Since the code is very similar you won&#39;t see it here, instead you can go to Github and check <a href="https://github.com/abuiles/AnchorX/pull/17">pull request #17</a> which includes lal the changes.</p>
+
+<p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0W3r2g1b2a2C3k0u1R1t/Screen%20Recording%202018-07-23%20at%2010.46%20AM.gif?X-CloudApp-Visitor-Id=49274&amp;v=4c5c7ace" alt="Screen%20recording%202018 07 23%20at%2010.46%20am" /></p>
+
+<p>Next you will implement the final screen which is which will allow you to send money to other AnchorX users, using their <code>username</code>.</p>
 <h2 id='sending-payments'>Sending payments</h2>
 <p>Flow for doing P2P payments.</p>
-<h2 id='cashing-out'>Cashing out</h2>
-<p>Fake implementation for transferring money to the bank accountp</p>
 <h1 id='best-practices'>Best practices</h1>
 <p>Best practices for managing issuing accounts, signing transactions on behalf of users, etc.</p>
-<h1 id='security'>Security</h1>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-<h2 id='infrastructure'>Infrastructure</h2><h2 id='keeping-keys-secure'>Keeping keys secure</h2><h1 id='f-a-q'>F.A.Q</h1>
-<aside class="notice">
-This error section is stored in a separate file in <code>includes/_errors.md</code>. Slate allows you to optionally separate out your docs into many files...just save them to the <code>includes</code> folder and add them to the top of your <code>index.md</code>'s frontmatter. Files are included in the order listed.
-</aside>
-
-<p>The Kittn API uses the following error codes:</p>
-
-<table><thead>
-<tr>
-<th>Error Code</th>
-<th>Meaning</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>400</td>
-<td>Bad Request -- Your request is invalid.</td>
-</tr>
-<tr>
-<td>401</td>
-<td>Unauthorized -- Your API key is wrong.</td>
-</tr>
-<tr>
-<td>403</td>
-<td>Forbidden -- The kitten requested is hidden for administrators only.</td>
-</tr>
-<tr>
-<td>404</td>
-<td>Not Found -- The specified kitten could not be found.</td>
-</tr>
-<tr>
-<td>405</td>
-<td>Method Not Allowed -- You tried to access a kitten with an invalid method.</td>
-</tr>
-<tr>
-<td>406</td>
-<td>Not Acceptable -- You requested a format that isn&#39;t json.</td>
-</tr>
-<tr>
-<td>410</td>
-<td>Gone -- The kitten requested has been removed from our servers.</td>
-</tr>
-<tr>
-<td>418</td>
-<td>I&#39;m a teapot.</td>
-</tr>
-<tr>
-<td>429</td>
-<td>Too Many Requests -- You&#39;re requesting too many kittens! Slow down!</td>
-</tr>
-<tr>
-<td>500</td>
-<td>Internal Server Error -- We had a problem with our server. Try again later.</td>
-</tr>
-<tr>
-<td>503</td>
-<td>Service Unavailable -- We&#39;re temporarily offline for maintenance. Please try again later.</td>
-</tr>
-</tbody></table>
-
+<h1 id='f-a-q'>F.A.Q</h1>
       </div>
       <div class="dark-box">
           <div class="lang-selector">
