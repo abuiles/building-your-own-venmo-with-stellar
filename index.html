@@ -393,34 +393,18 @@
 Work in progress ████████░░ 85%
 </aside>
 
-<p>Welcome to building your own Venmo with Stellar. This guide will show you how to create a product &quot;similar&quot; to Venmo using Stellar.</p>
+<p>Stellar is a distributed ledger technology which allows anyone to build low-cost and fast financial services. This tutorial will walk you through some of its features and show you how to create a Venmo clone on top of Stellar called <code>AnchorX</code>.</p>
 
-<p>In Stellar, an entity like Venmo is called an <code>anchor</code>. When you are building an anchor, there are two suggested ways to build and maintain customer accounts:</p>
+<p>In order to maintain customer accounts, Stellar requires you to create some sort of organization. Think about it as a &quot;Stellar company&quot; but in Stellar Jargon, that is called an <code>anchor</code>. There are 2 ways to do this. Either you create Stellar accounts on behalf of customers or use the memo field of the transaction to operate on behalf of your customers/users.</p>
 
-<ol>
-<li>Maintain a Stellar account for each customer.</li>
-<li>Maintain a single Stellar account to transact on behalf of your customers and use the memo field to identify who is the recipient of each transaction.</li>
-</ol>
-
-<p>The <a href="https://www.stellar.org/developers/guides/anchor/index.html#customer-accounts">official documentation</a> covers the second method but there is no documentation about the first one.</p>
-
-<p>In this tutorial you will use Stellar to build a low-cost financial service similar to Venmo and instead of following the approach number two which is already documented in the Stellar website, you&#39;ll be maintaining a Stellar account for each customer and also making it transparant to the final user that they are using Stellar.</p>
+<p>The <a href="https://www.stellar.org/developers/guides/anchor/index.html#customer-accounts">official documentation</a> covers the second method but there is no documentation about the first one. This tutorial will show you how to create an anchor maintaining a Stellar account for each customer.</p>
 
 <p>The following are some of the goals in this tutorial:</p>
 
 <ol>
-<li>The final user won&#39;t know about Stellar.</li>
-<li>The final user won&#39;t need to store or worry about seed keys.</li>
-<li>The final user won&#39;t transact with Lumens.</li>
-<li>The system will use Lumens as &quot;usage tokens&quot;. Each account needs Lumens to be able to use the Stellar ledger.</li>
-<li>The final user will be depositing &quot;fiat&quot; into the financial instituion and getting &quot;fiat&quot; credited in their accounts.</li>
-<li>The final user will hold an asset which represents American Dollars.</li>
-<li>All the examples and the wallet will be running in the Stellar testnet.</li>
+<li>Make a system that feels like Venmo with Stellar.</li>
+<li>The user won&#39;t see any of the implementation details - they will be transacting in Dollars.</li>
 </ol>
-
-<aside class="notice">
-Anchors are entities that people trust to hold their deposits and issue credits into the Stellar network for those deposits.
-</aside>
 <h1 id='concepts'>Concepts</h1>
 <p>Before getting started you need to learn some concepts in Stellar like account, asset, anchor, multisignature.</p>
 <h2 id='account'>Account</h2>
@@ -433,11 +417,6 @@ in a exchange or asking a friend for some.</p>
 public key is the equivalent of your bank account number and then the
 private key is the password. The private key is required to sign each
 transaction.</p>
-
-<p>For this tutorial, you&#39;ll be using accounts to create new assets and
-also provision other users accounts as they signup for this Venmo
-clone which will be called <code>AnchorX</code>. Although each user will have a Stellar account they won&#39;t know
-about it.</p>
 <h3 id='creating-accounts-in-the-test-network'>Creating accounts in the test network</h3><pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">StellarSdk</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'stellar-sdk'</span><span class="p">)</span>
 <span class="kr">const</span> <span class="nx">fetch</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'node-fetch'</span><span class="p">)</span>
 
