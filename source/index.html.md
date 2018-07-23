@@ -65,6 +65,21 @@ also provision other users accounts as they signup for this Venmo
 clone which will be called `AnchorX`. Although each user will have a Stellar account they won't know
 about it.
 
+[TODO: Add intro of why are you using JS and what is required dependency-wise]
+[IDEA: "Precompiler Section"]
+
+Stellar is built through a RESTful HTTP API server called Horizon. You can run your
+own Horizon server using the [Quickstart Docker
+image](https://hub.docker.com/r/stellar/quickstart/) Although bindings exist for
+multiple languages, we will use JavaScript to build our Venmo. JavaScript programming
+is beyond this tutorial, nevertheless, a comprenhensive guide to setup a JavaScript
+environment with Stellar can be found
+[here](https://github.com/stellar/js-stellar-sdk)
+
+[NOTE: Tested script. Works.]
+[SUGGESTION: Add the expected output of the script]
+[SUGGESTION: Remove the call to `console.log(payload)` to avoid distracting the user]
+
 ### Creating accounts in the test network
 ```javascript
 const StellarSdk = require('stellar-sdk')
@@ -106,9 +121,12 @@ run()
 ```
 > Run it on repl.it [https://repl.it/@abuiles/CreateStellarAccount](https://repl.it/@abuiles/CreateStellarAccount)
 
-On the right you can see how to generate a `keypair` with the `Stellar JS SDK` and then ask a service run by the Stellar Development Foundation called `friendbot` to give us some initial Lumens.
+On the right you can see how to generate a `keypair` with the `Stellar JS SDK` and
+then ask a service run by the Stellar Development Foundation called `friendbot` to
+give us some initial Lumens.
 
 ## Assets
+
 ```json
 // https://horizon.stellar.org/accounts/GBCFAMVYPJTXHVWRFP7VO6F4QE7B4UHAVJOEG5VR6VEB5M67GHQGEEAB
 {
@@ -150,53 +168,67 @@ On the right you can see how to generate a `keypair` with the `Stellar JS SDK` a
   ]
 }
 ```
-The Stellar network allows us to represent any kind of asset. All assets
-in Stellar can be traded and exchanged with each other.
 
-Like other protocols, Stellar has a native asset which is called the
-`Lumen` represented with the symbol `XLM`. Stellar accounts can hold
-multiple assets as long as they trust the asset and in some
-cases they have been authorized to hold the asset.
+[SUGGESTION: The paragraph feels a bit disorganized. I'd start with a definition and
+then move to how Stellar defines its assets, let me know what you think:]
 
-Any account can create their own asset representing traditional or custom (work/usage/hybrid) of assets.
+Assets are the things you normally associate with resources. Things that have value,
+like fiat, equity, real estate, goats, you name it. Cryptocurrencies allows us to
+represent any kind of asset. Stellar is no exception, it allows any account to define
+traditional assets or even come up with new exciting assets. These can be easily
+traded and exchanged over the Stellar network.
 
-Traditional assets are a cryptographic representation of things like
-fiat, equity, real estate, goats, you name it.
+[NOTE: What is fiat? People not familiar with Crypto/finances might have a hard time]
 
-Lumens are an example of a custom asset or token, at they allow us to
-interact with the Stellar network. There are many other types of
-assets built on top of Stellar, one example is the `EURT` which is a
-representation of the `EURO` and allows people to do cross-border
-remittances without incurring in high transaction fees. There is also
-`MOBI` which allows people to use the `Mobius network`, if you hold `MOBI` then
-your can interact with the applications in their network.
+Under the blankets, Stellar uses a native asset which is called the `Lumen`
+represented with the symbol `XLM`. Stellar accounts can hold multiple assets as long
+as they "trust" the asset and in some cases they have been authorized to hold the
+asset.
 
-On the right you can see the JSON representation of a Stellar
-account. Each account has a key called balances, representing the
-assets held by the account.
+[NOTE: What does it mean to "Trust" the asset?]
 
-The account on the right has the following assets:
+Assets still feel a bit abstract. Here is a more concrete example of how an account
+balance could look like in JSON format:
 
-- MOBI: Asset issued by [Mobius network](https://mobius.network/)
+It contains these commonly used assets defined by the Stellar network
+
 - EURT: Asset issued by [Tempo](http://tempo.eu.com/) a remittances company.
 - ETH: This asset represents Ether, you send real `ETH` to [http://papaya.io/](http://papaya.io/) and they credit you with their `ETH` asset in your Stellar account.
 - USD: Asset representing `Dollars`, issued by [Stronghold](https://stronghold.co/).
+- MOBI: Asset issued by [Mobius network](https://mobius.network/)
 - native: Native asset of the network, it represents `Lumens`.
 
-Assets in Stellar are representet by a combination of `code` and `issuer`. It is possible then to find two assets with the code `USD` representing Dollars but one can be issued by Bank Of America and the other by Venmo.
+[FOOTNOTE: What is the Mobius network for?]
 
-It is also possible to find multiple assets with the code `BTC`, where one
-can be backed by [http://papaya.io/](http://papaya.io/) and the other
-one from [StrongHold](https://stronghold.co/). It means that at some
-point the issuer (also known as anchor) received `BTC` in their
-Bitcoin wallets and then credited with their equivalent representation
-of Bitcoin your Stellar account. If you visit the following site, [https://stellar.expert/explorer/public/asset](https://stellar.expert/explorer/public/asset) you'll find all the assets issued in Stellar.
 
-You'll be creating a custom asset in the test network
-(testnet) representing Dollars and you will build a way to credit and
-debit accounts as if we were depositing Dollars.
+[TODO: This extra paragraphs are interesting but I feel they confuse the basic idea
+of the paragraph. I'd add either a [!Notice] Section that can be skipped.]
 
-You can learn more about assets in the SDF guides: [https://www.stellar.org/developers/guides/concepts/assets.html](https://www.stellar.org/developers/guides/concepts/assets.html)
+[SUGGESTION: Add a new section to present this info. I don't think is super important]
+# Same code, different issuer #
+
+Assets in Stellar are representet by a combination of `code` and `issuer`. It is
+possible then to find two assets with the code `USD` representing Dollars but one can
+be issued by Bank Of America and the other by Venmo.
+
+It is also possible to find multiple assets with the code `BTC`, where one can be
+backed by [http://papaya.io/](http://papaya.io/) and the other one from
+[StrongHold](https://stronghold.co/). It means that at some point the issuer (also
+known as anchor) received `BTC` in their Bitcoin wallets and then credited with their
+equivalent representation of Bitcoin your Stellar account. If you visit the following
+site,
+[https://stellar.expert/explorer/public/asset](https://stellar.expert/explorer/public/asset)
+you'll find all the assets issued in Stellar.
+
+You'll be creating a custom asset in the test network (testnet) representing Dollars
+and you will build a way to credit and debit accounts as if we were depositing
+Dollars.
+
+You can learn more about assets in the SDF guides:
+[https://www.stellar.org/developers/guides/concepts/assets.html](https://www.stellar.org/developers/guides/concepts/assets.html)
+
+
+[HERE is finished review #2]
 
 ## Anchor
 
