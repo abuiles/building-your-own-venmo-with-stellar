@@ -19,7 +19,7 @@ search: true
 Work in progress ████████░░ 85%
 </aside>
 
-Stellar is a distributed ledger technology which allows anyone to build low-cost and fast financial services. This tutorial will walk you through some of its features and show you how to create a Venmo clone on top of Stellar called `AnchorX`.
+Stellar is a distributed ledger technology which allows anyone to build low-cost and fast financial services. This tutorial will walk you through some of its features and show you how to create a [Venmo](https://venmo.com/) clone on top of Stellar called `AnchorX`.
 
 In order to maintain customer accounts, Stellar requires you to create some sort of organization. Think about it as a "Stellar company" but in Stellar jargon, that is called an `anchor`. There are 2 ways to do this. Either you create Stellar accounts on behalf of customers or use the memo field of the transaction to operate on behalf of your customers/users.
 
@@ -52,15 +52,13 @@ For this tutorial you will be using a test network (testnet) run by the SDF unde
 
 ## Account
 
-The most important unit in Stellar are the accounts. You need to
-create one before interacting with the network. To create an account
-you need to deposit Lumens into it, you can get the Lumens buying them
-in a exchange or asking a friend for some.
+The most important unit in Stellar are the accounts. You need to create one before
+interacting with the network. To create an account you need to deposit Lumens into
+it. You can get Lumens buying them in an exchange or asking a friend for some.
 
-When you create an account, you get a public and private key. The
-public key is the equivalent of your bank account number and then the
-private key is the password. The private key is required to sign each
-transaction.
+When you create an account, you get a public and private key. The public key is the
+equivalent of your bank account number and the private key is the password. The
+private key is required to sign each transaction.
 
 ### Creating accounts in the test network
 
@@ -154,30 +152,30 @@ give us some initial Lumens.
   ]
 }
 ```
-The Stellar network allows us to represent any kind of asset. All assets
-in Stellar can be traded and exchanged with each other.
 
-Like other protocols, Stellar has a native asset which is called the
-`Lumen` represented with the symbol `XLM`. Stellar accounts can hold
-multiple assets as long as they trust the asset and in some
-cases they have been authorized to hold the asset.
+The Stellar network allows us to represent any kind of asset. All assets in Stellar
+can be traded and exchanged with each other.
 
-Any account can create their own asset representing traditional or custom (work/usage/hybrid) of assets.
+Like other protocols, Stellar has a native asset which is called the `Lumen`
+represented with the symbol `XLM`. Stellar accounts can hold multiple assets as long
+as they trust the asset and in some cases they have been authorized to hold the
+asset.
 
-Traditional assets are a cryptographic representation of things like
-fiat, equity, real estate, goats, you name it.
+Any account can create their own asset representing traditional or custom
+(work/usage/hybrid) of assets.
 
-Lumens are an example of a custom asset or token, at they allow us to
-interact with the Stellar network. There are many other types of
-assets built on top of Stellar, one example is the `EURT` which is a
-representation of the `EURO` and allows people to do cross-border
-remittances without incurring in high transaction fees. There is also
-`MOBI` which allows people to use the `Mobius network`, if you hold `MOBI` then
+Traditional assets are a cryptographic representation of things like fiat, equity,
+real estate, goats, you name it.
+
+Lumens are an example of a custom asset or token, at they allow us to interact with
+the Stellar network. There are many other types of assets built on top of Stellar,
+one example is the `EURT` which is a representation of the `EURO` and allows people
+to do cross-border remittances without incurring in high transaction fees. There is
+also `MOBI` which allows people to use the `Mobius network`, if you hold `MOBI` then
 your can interact with the applications in their network.
 
-On the right you can see the JSON representation of a Stellar
-account. Each account has a key called balances, representing the
-assets held by the account.
+On the right you can see the JSON representation of a Stellar account. Each account
+has a key called balances, representing the assets held by the account.
 
 The account on the right has the following assets:
 
@@ -186,47 +184,67 @@ The account on the right has the following assets:
 - USD: Asset representing `Dollars`, issued by [Stronghold](https://stronghold.co/).
 - native: Native asset of the network, it represents `Lumens`.
 
-Assets in Stellar are representet by a combination of `code` and `issuer`. It is possible then to find two assets with the code `USD` representing Dollars but one can be issued by Bank Of America and the other by Venmo.
+Assets in Stellar are representet by a combination of `code` and `issuer`. It is
+possible then to find two assets with the code `USD` representing Dollars but one can
+be issued by Bank Of America and the other by Venmo.
 
-It is also possible to find multiple assets with the code `BTC`, where one
-can be backed by [http://papaya.io/](http://papaya.io/) and the other
-one from [StrongHold](https://stronghold.co/). It means that at some
-point the issuer (also known as anchor) received `BTC` in their
-Bitcoin wallets and then credited with their equivalent representation
-of Bitcoin your Stellar account. If you visit the following site, [https://stellar.expert/explorer/public/asset](https://stellar.expert/explorer/public/asset) you'll find all the assets issued in Stellar.
+It is also possible to find multiple assets with the code `BTC`, where one can be
+backed by [http://papaya.io/](http://papaya.io/) and the other one from
+[StrongHold](https://stronghold.co/). It means that at some point the issuer (also
+known as anchor) received `BTC` in their Bitcoin wallets and then credited with their
+equivalent representation of Bitcoin your Stellar account. If you visit the following
+site,
+[https://stellar.expert/explorer/public/asset](https://stellar.expert/explorer/public/asset)
+you'll find all the assets issued in Stellar.
 
-You'll be creating a custom asset in the test network
-(testnet) representing Dollars and you will build a way to credit and
-debit accounts as if we were depositing Dollars.
+[FIXME: Switching between "You" and "We". Let's choose which one to use and let's use
+it consistently]
+You'll be creating a custom asset in the test network (testnet) representing Dollars
+and you will build a way to credit and debit accounts as if we were depositing
+Dollars.
 
-You can learn more about assets in the SDF guides: [https://www.stellar.org/developers/guides/concepts/assets.html](https://www.stellar.org/developers/guides/concepts/assets.html)
+You can learn more about assets in the SDF guides:
+[https://www.stellar.org/developers/guides/concepts/assets.html](https://www.stellar.org/developers/guides/concepts/assets.html)
 
 ## Anchor
 
-At the beginning of this tutorial, you read that an entity like
-Venmo is called an anchor.  Anchors issue assets on top of Stellar and
-then credit those asset to other Stellar accounts. If the anchor
-represents fiat, then it is likely an authorized entity to deal with
-money like banks, savings and credit institutions or a
-remittance company. User deposit fiat to the anchor's account and they
-credit the user Stellar account with the equivalent balance.
+At the beginning of this tutorial, you read that an entity like Venmo is called an
+anchor.  Anchors issue assets on top of Stellar and then credit those asset to other
+Stellar accounts. If the anchor represents fiat, then it is likely an authorized
+entity to deal with money like banks, savings and credit institutions or a remittance
+company. A User deposits fiat to the anchor's account and they credit the user
+Stellar account with the equivalent balance.
 
-This is how banks or Venmo works but instead of using a public ledger
-like Stellar, they have their own private system and use third parties
-like ACH or SWIFT to move money around.
+[QUESTION: Is ACH-SWITCH really private? I'd maybe say something around the lines of
+"They use traditional transactional mechanisms like SWIFT, ACH"]
 
-Anchors can represent also other cryptocurrencies. [Papaya](https://apay.io/) is an anchor which includes support for cryptocurrencies like `ETH`, `BTC` and others.
+This is how banks or Venmo works but instead of using a public ledger like Stellar,
+they have their own private system and use third parties like ACH or SWIFT to move
+money around.
 
-If you want to deposit Ether, they give you an Ethereum address. After you deposit Ether to that address they issue the equivalent to your Stellar account. In this case you'll have to trust Papaya because they'll be acting as custodian for the Ether you sent them.
+Anchors can represent also other cryptocurrencies. [Papaya](https://apay.io/) is an
+anchor which includes support for cryptocurrencies like `ETH`, `BTC` and others.
 
-In this tutorial, you will be creating an anchor which will issue an
-asset representing USD. User will have to download an app, you'll fake a
-KYC process and then create a Stellar account for the user and
-authorize the user to hold the asset. Once the user have been
-authorized they will be able to deposit USD or debit USD from their accounts.
+If you want to deposit Ether, they give you an Ethereum address. After you deposit
+Ether to that address they issue the equivalent to your Stellar account. In this case
+you'll have to trust Papaya because they'll be acting as custodian for the Ether you
+sent them.
 
-You can learn more about anchors in the SDF guides: [https://www.stellar.org/developers/guides/anchor/](https://www.stellar.org/developers/guides/anchor/)
+In this tutorial, you will be creating an anchor which will issue an asset
+representing USD. The user will have to download an app, you'll fake a user
+validation (KYC) [Add footnote on "Know your customer"] process and then create a
+Stellar account for the user and authorize the user to hold the asset. Once the user
+have been authorized they will be able to deposit USD or debit USD from their
+accounts.
 
+You can learn more about anchors in the SDF guides:
+[https://www.stellar.org/developers/guides/anchor/](https://www.stellar.org/developers/guides/anchor/)
+
+[COMMENT: Title seems irrelevant, the title conveys a very general setup of an
+anchor, but in reality is more like how to map features from Venmo to an Anchor]
+
+[SUGGESTION: Replace Title to "An Anchor for Venmo"]
+[SUGGESTION: "Mapping Venmo to Stellar"]
 # Anchor Setup
 
 The following is high level overview of what happens when you want to use Venmo:
@@ -236,7 +254,8 @@ The following is high level overview of what happens when you want to use Venmo:
 3. Once you are authorized to use Venmo, transfer money from your bank account and send it to other Venmo users.
 4. Transfer to your bank whatever balance you have left.
 
-Let's translate the steps above to actions in AnchorX and then identify the requirements to setup the anchor.
+Let's translate the steps above to actions in AnchorX and then identify the
+requirements to setup the anchor.
 
 ### Download the app and create an user.
 
@@ -274,8 +293,9 @@ new StellarSdk
   .build();
 ```
 
-Likewise, when the asset issuer requires authorization by them before people can hold their asset. It needs to happen in an operation.
-The code shows an operation where the issuing account is authorizing a `trustor` to hold its asset with code `USD`.
+Likewise, when the asset issuer requires authorization by them before people can hold
+their asset. It needs to happen in an operation.  The code shows an operation where
+the issuing account is authorizing a `trustor` to hold its asset with code `USD`.
 
 ```javascript
 const trustor = 'some-stellar-address'
