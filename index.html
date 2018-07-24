@@ -241,6 +241,15 @@
             <a href="#concepts" class="toc-h1 toc-link" data-title="concepts">Concepts</a>
               <ul class="toc-list-h2">
                   <li>
+                    <a href="#stellar-consensus-protocol" class="toc-h2 toc-link" data-title="stellar-consensus-protocol">Stellar Consensus Protocol</a>
+                  </li>
+                  <li>
+                    <a href="#stellar-development-foundation" class="toc-h2 toc-link" data-title="stellar-development-foundation">Stellar Development Foundation</a>
+                  </li>
+                  <li>
+                    <a href="#stellar-core-and-horizon-api" class="toc-h2 toc-link" data-title="stellar-core-and-horizon-api">Stellar Core and Horizon API</a>
+                  </li>
+                  <li>
                     <a href="#account" class="toc-h2 toc-link" data-title="account">Account</a>
                   </li>
                   <li>
@@ -395,18 +404,26 @@ Work in progress ████████░░ 85%
 
 <p>Stellar is a distributed ledger technology which allows anyone to build low-cost and fast financial services. This tutorial will walk you through some of its features and show you how to create a Venmo clone on top of Stellar called <code>AnchorX</code>.</p>
 
-<p>In order to maintain customer accounts, Stellar requires you to create some sort of organization. Think about it as a &quot;Stellar company&quot; but in Stellar Jargon, that is called an <code>anchor</code>. There are 2 ways to do this. Either you create Stellar accounts on behalf of customers or use the memo field of the transaction to operate on behalf of your customers/users.</p>
+<p>In order to maintain customer accounts, Stellar requires you to create some sort of organization. Think about it as a &quot;Stellar company&quot; but in Stellar jargon, that is called an <code>anchor</code>. There are 2 ways to do this. Either you create Stellar accounts on behalf of customers or use the memo field of the transaction to operate on behalf of your customers/users.</p>
 
-<p>The <a href="https://www.stellar.org/developers/guides/anchor/index.html#customer-accounts">official documentation</a> covers the second method but there is no documentation about the first one. This tutorial will show you how to create an anchor maintaining a Stellar account for each customer.</p>
+<p>The <a href="https://www.stellar.org/developers/guides/anchor/index.html#customer-accounts">official documentation</a> covers the second method but there is no documentation about the first one.</p>
 
-<p>The following are some of the goals in this tutorial:</p>
+<p>This tutorial will show you how to create an anchor maintaining a Stellar account for each customer, hiding the implementation details. It will use the programming language JavaScript and the mobile wallet will be written using React Native.</p>
+<h1 id='concepts'>Concepts</h1><h2 id='stellar-consensus-protocol'>Stellar Consensus Protocol</h2>
+<p>Stellar is built on top of the Stellar Consensus Protocol (SCP), which defines a way to reach consensus without relying on close
+systems, this is what helps maintaining the Stellar ledger. Explaining how the protocol works is beyond the scope of this tutorial, but you can learn more about <a href="https://www.stellar.org/developers/guides/concepts/scp.html">here</a></p>
+<h2 id='stellar-development-foundation'>Stellar Development Foundation</h2>
+<p>The Stellar Development Foundation (SDF) is a non-profit corporation which develops and maintains the Stellar Network and the Stellar Protocol. You can learn more about them in the <a href="https://www.stellar.org/about/mandate/">mandate page</a></p>
+<h2 id='stellar-core-and-horizon-api'>Stellar Core and Horizon API</h2>
+<p>The <code>Stellar Core</code> software is in charge of communicating and maintaining the Stellar network. Using the Stellar Consensus Protocol (SCP), it does validation and agrees on the status of transactions in the network. Anyone can run the software. Running Stellar Core is similar to running an Ethereum or Bitcoin node, except that there is no mining involved.</p>
 
-<ol>
-<li>Make a system that feels like Venmo with Stellar.</li>
-<li>The user won&#39;t see any of the implementation details - they will be transacting in Dollars.</li>
-</ol>
-<h1 id='concepts'>Concepts</h1>
-<p>Before getting started you need to learn some concepts in Stellar like account, asset, anchor, multisignature.</p>
+<p><code>Horizon</code> is a RESTful API which allows you to interact with <code>Stellar Core</code> and makes it easy to build applications using the network. With it you can submit transactions, read accounts or subscribe to events in the network.</p>
+
+<p>You can interact with it using any HTTP client like cURL, Postman or Paw. There are also SDKs for different programming languages like Go, Java, JavaScript, Ruby, etc.</p>
+
+<p>Setting up <code>Stellar Core</code> or <code>Horizon</code> won&#39;t be included here but you can learn about it in the <a href="https://www.stellar.org/developers/guides/get-started/">official guides</a>.</p>
+
+<p>For this tutorial you will be using a test network (testnet) run by the SDF under https://horizon-testnet.stellar.org/ and the JavaScript Stellar SDK.</p>
 <h2 id='account'>Account</h2>
 <p>The most important unit in Stellar are the accounts. You need to
 create one before interacting with the network. To create an account
@@ -417,7 +434,11 @@ in a exchange or asking a friend for some.</p>
 public key is the equivalent of your bank account number and then the
 private key is the password. The private key is required to sign each
 transaction.</p>
-<h3 id='creating-accounts-in-the-test-network'>Creating accounts in the test network</h3><pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">StellarSdk</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'stellar-sdk'</span><span class="p">)</span>
+<h3 id='creating-accounts-in-the-test-network'>Creating accounts in the test network</h3>
+<blockquote>
+<p>For now we recommend running the code below on repl.it <a href="https://repl.it/@abuiles/CreateStellarAccount">https://repl.it/@abuiles/CreateStellarAccount</a></p>
+</blockquote>
+<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">StellarSdk</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'stellar-sdk'</span><span class="p">)</span>
 <span class="kr">const</span> <span class="nx">fetch</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'node-fetch'</span><span class="p">)</span>
 
 <span class="c1">// Generates a keypair and funds account with friendbot</span>
@@ -448,29 +469,29 @@ transaction.</p>
 
   <span class="kr">const</span> <span class="nx">response</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
   <span class="kr">const</span> <span class="nx">payload</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">()</span>
-
-  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="nx">run</span><span class="p">()</span>
-</code></pre>
-<blockquote>
-<p>Run it on repl.it <a href="https://repl.it/@abuiles/CreateStellarAccount">https://repl.it/@abuiles/CreateStellarAccount</a></p>
-</blockquote>
 
-<p>On the right you can see how to generate a <code>keypair</code> with the <code>Stellar JS SDK</code> and then ask a service run by the Stellar Development Foundation called <code>friendbot</code> to give us some initial Lumens.</p>
+<span class="cm">/* Example output
+
+   Congrats, you have a Stellar account in the test network!
+   seed: SCUNXTHOURNM4W4HIUQ7GZIQ25VHD4UPRWWCCX6LY24EZXMGGNVBJVST
+   id: GBWR2HBRWPINWB5VEAXXV5QUHRCT7HC7P635UCZPX3MGGCGQRIKDL4R6
+
+
+   Loading account from test network:
+   https://horizon-testnet.stellar.org/accounts/GBWR2HBRWPINWB5VEAXXV5QUHRCT7HC7P635UCZPX3MGGCGQRIKDL4R6
+*/</span>
+</code></pre>
+<p>On the right you can see how to generate a <code>keypair</code> with the <code>Stellar JS SDK</code> and
+then ask a service run by the Stellar Development Foundation called <code>friendbot</code> to
+give us some initial Lumens.</p>
 <h2 id='assets'>Assets</h2><pre class="highlight json tab-json"><code><span class="err">//</span><span class="w"> </span><span class="err">https</span><span class="p">:</span><span class="err">//horizon.stellar.org/accounts/GBCFAMVYPJTXHVWRFP</span><span class="mi">7</span><span class="err">VO</span><span class="mi">6</span><span class="err">F</span><span class="mi">4</span><span class="err">QE</span><span class="mi">7</span><span class="err">B</span><span class="mi">4</span><span class="err">UHAVJOEG</span><span class="mi">5</span><span class="err">VR</span><span class="mi">6</span><span class="err">VEB</span><span class="mi">5</span><span class="err">M</span><span class="mi">67</span><span class="err">GHQGEEAB</span><span class="w">
 </span><span class="p">{</span><span class="w">
   </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GBCFAMVYPJTXHVWRFP7VO6F4QE7B4UHAVJOEG5VR6VEB5M67GHQGEEAB"</span><span class="p">,</span><span class="w">
   </span><span class="s2">"account_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GBCFAMVYPJTXHVWRFP7VO6F4QE7B4UHAVJOEG5VR6VEB5M67GHQGEEAB"</span><span class="p">,</span><span class="w">
   </span><span class="s2">"balances"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-    </span><span class="p">{</span><span class="w">
-      </span><span class="s2">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0000000"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"limit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"922337203685.4775807"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"asset_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"credit_alphanum4"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"asset_code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MOBI"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"asset_issuer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GA6HCMBLTZS5VYYBCATRBRZ3BZJMAFUDKYYF6AH6MVCMGWMRDNSWJPIH"</span><span class="w">
-    </span><span class="p">},</span><span class="w">
     </span><span class="p">{</span><span class="w">
       </span><span class="s2">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0000000"</span><span class="p">,</span><span class="w">
       </span><span class="s2">"limit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"922337203685.4775807"</span><span class="p">,</span><span class="w">
@@ -499,53 +520,25 @@ transaction.</p>
   </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
-<p>The Stellar network allows us to represent any kind of asset. All assets
-in Stellar can be traded and exchanged with each other.</p>
+<p>Assets are resources with economic value like money, equity, real
+estate, goats, you name it. Cryptocurrencies allow you to represent
+any kind of asset. Stellar is no exception, it allows any account to
+define traditional assets or even come up with new exciting
+assets. These can be easily traded and exchanged over the Stellar
+network.</p>
 
-<p>Like other protocols, Stellar has a native asset which is called the
-<code>Lumen</code> represented with the symbol <code>XLM</code>. Stellar accounts can hold
-multiple assets as long as they trust the asset and in some
-cases they have been authorized to hold the asset.</p>
+<p>Under the blankets, Stellar uses a native asset which is called the Lumen represented with the symbol XLM.</p>
 
-<p>Any account can create their own asset representing traditional or custom (work/usage/hybrid) of assets.</p>
+<p>Assets still feel a bit abstract. On the right you can find a concrete example of how an account balance could look like in JSON format.</p>
 
-<p>Traditional assets are a cryptographic representation of things like
-fiat, equity, real estate, goats, you name it.</p>
-
-<p>Lumens are an example of a custom asset or token, at they allow us to
-interact with the Stellar network. There are many other types of
-assets built on top of Stellar, one example is the <code>EURT</code> which is a
-representation of the <code>EURO</code> and allows people to do cross-border
-remittances without incurring in high transaction fees. There is also
-<code>MOBI</code> which allows people to use the <code>Mobius network</code>, if you hold <code>MOBI</code> then
-your can interact with the applications in their network.</p>
-
-<p>On the right you can see the JSON representation of a Stellar
-account. Each account has a key called balances, representing the
-assets held by the account.</p>
-
-<p>The account on the right has the following assets:</p>
+<p>It contains the following assets:</p>
 
 <ul>
-<li>MOBI: Asset issued by <a href="https://mobius.network/">Mobius network</a></li>
 <li>EURT: Asset issued by <a href="http://tempo.eu.com/">Tempo</a> a remittances company.</li>
-<li>ETH: This asset represents Ether, you send real <code>ETH</code> to <a href="http://papaya.io/">http://papaya.io/</a> and they credit you with their <code>ETH</code> asset in your Stellar account.</li>
+<li>ETH: This asset represents Ether, you send real <code>ETH</code> to <a href="http://papaya.io/">http://papaya.io/</a> and they credit your Stellar account with their <code>ETH</code>.</li>
 <li>USD: Asset representing <code>Dollars</code>, issued by <a href="https://stronghold.co/">Stronghold</a>.</li>
 <li>native: Native asset of the network, it represents <code>Lumens</code>.</li>
 </ul>
-
-<p>Assets in Stellar are representet by a combination of <code>code</code> and <code>issuer</code>. It is possible then to find two assets with the code <code>USD</code> representing Dollars but one can be issued by Bank Of America and the other by Venmo.</p>
-
-<p>It is also possible to find multiple assets with the code <code>BTC</code>, where one
-can be backed by <a href="http://papaya.io/">http://papaya.io/</a> and the other
-one from <a href="https://stronghold.co/">StrongHold</a>. It means that at some
-point the issuer (also known as anchor) received <code>BTC</code> in their
-Bitcoin wallets and then credited with their equivalent representation
-of Bitcoin your Stellar account. If you visit the following site, <a href="https://stellar.expert/explorer/public/asset">https://stellar.expert/explorer/public/asset</a> you&#39;ll find all the assets issued in Stellar.</p>
-
-<p>You&#39;ll be creating a custom asset in the test network
-(testnet) representing Dollars and you will build a way to credit and
-debit accounts as if we were depositing Dollars.</p>
 
 <p>You can learn more about assets in the SDF guides: <a href="https://www.stellar.org/developers/guides/concepts/assets.html">https://www.stellar.org/developers/guides/concepts/assets.html</a></p>
 <h2 id='anchor'>Anchor</h2>
