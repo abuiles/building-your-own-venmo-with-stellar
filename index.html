@@ -382,9 +382,23 @@
           </li>
           <li>
             <a href="#best-practices" class="toc-h1 toc-link" data-title="best-practices">Best practices</a>
+              <ul class="toc-list-h2">
+                  <li>
+                    <a href="#using-multisignature" class="toc-h2 toc-link" data-title="using-multisignature">Using multisignature</a>
+                  </li>
+                  <li>
+                    <a href="#adding-signers-to-an-account" class="toc-h2 toc-link" data-title="adding-signers-to-an-account">Adding signers to an account</a>
+                  </li>
+                  <li>
+                    <a href="#managing-the-issuing-account" class="toc-h2 toc-link" data-title="managing-the-issuing-account">Managing the issuing account</a>
+                  </li>
+                  <li>
+                    <a href="#stellar-core-and-horizon" class="toc-h2 toc-link" data-title="stellar-core-and-horizon">Stellar Core and Horizon</a>
+                  </li>
+              </ul>
           </li>
           <li>
-            <a href="#f-a-q" class="toc-h1 toc-link" data-title="f-a-q">F.A.Q</a>
+            <a href="#conclusion-3" class="toc-h1 toc-link" data-title="conclusion">Conclusion</a>
           </li>
       </div>
         <ul class="toc-footer">
@@ -399,7 +413,7 @@
       <div class="content">
         <h1 id='building-your-own-venmo-with-stellar'>Building your own Venmo with Stellar</h1>
 <aside class="notice">
-Work in progress ████████░░ 85%
+Work in progress ████████████▒ 95%
 </aside>
 
 <p>Stellar is a distributed ledger technology which allows anyone to build low-cost and fast financial services. This tutorial will walk you through some of its features and show you how to create a Venmo clone on top of Stellar called <code>AnchorX</code>.</p>
@@ -2055,10 +2069,144 @@ You can find the documentation for the account builder <a href="https://stellar.
 
 <p>As mentioned at the beginning of this tutorial, AnchorX takes a different approach to other anchors since it manages users account. You could try modifying this wallet to allow each user to manage their own private keys and then use AnchorX to resolver usernames to Stellar addresses.</p>
 
-<p>Before finishing the tutorial, you will learn about some best practices around account management and security. I hope you enjoy this tutorial and if you have questions or suggestions, you can create an issue in the GitHub repo <a href="https://github.com/abuiles/building-your-own-venmo-with-stellar">here</a>.</p>
-<h1 id='best-practices'>Best practices</h1>
-<p>Best practices for managing issuing accounts, signing transactions on behalf of users, etc.</p>
-<h1 id='f-a-q'>F.A.Q</h1>
+<p>Before finishing the tutorial, you will learn about some best practices around account management and security.</p>
+<h1 id='best-practices'>Best practices</h1><h2 id='using-multisignature'>Using multisignature</h2>
+<p>Transactions in Stellar need an authorization to be valid. Such
+authorization is signed by the public key associated with the
+account. However, Stellar allows you to add multiple signers to an
+account and then specify a security level which can be <code>low</code>, <code>medium</code> or
+<code>high</code>. Each level has the following features:</p>
+
+<ul>
+<li><p><code>low</code>: it allows to update the sequence number for the source account and the allow trust operation.</p></li>
+<li><p><code>medium</code>: all other operations listed <a href="https://www.stellar.org/developers/guides/concepts/list-of-operations.html">here</a></p></li>
+<li><p><code>high</code>: it allows signers or the thresholds update and merge account operation.</p></li>
+</ul>
+
+<p>The official documentation has a completed summary on multisignature
+<a href="https://www.stellar.org/developers/guides/concepts/multi-sig.html">https://www.stellar.org/developers/guides/concepts/multi-sig.html</a>
+- please give it a read before continuing.</p>
+<pre class="highlight plaintext"><code>  const signerKeys = Keypair.fromSecret(
+    // Use something like KMS in production
+    AES.decrypt(
+      sender.stellarSeed,
+      ENVCryptoSecret
+    ).toString(enc.Utf8)
+  )
+</code></pre>
+<p>You can use multisignature to create different security schemas around
+account management, if you recall, you were decrypting the seed for
+processing new payments like displayed in the right. The issue with
+this is that you have to manage all your user keys and then if one
+gets exposed then you lose control of the account.</p>
+
+<p>An alternative setting instead of using the master key as signer, is
+to add two more signers to each account with mid and high threshold,
+and change the master key to have a low threshold. With this you will
+have the key with the highest threshold always offline and put the
+mid-threshold key in a service which can not be easily compromised. The downside of doing this is that it that it will increate the minium balance per account.</p>
+
+<p>This kind of schema was recently used by
+<a href="https://satoshipay.io/">SatoshiPay</a> in their Lumens give away, they
+were giving away lumens but you could only use them to pay creators in
+their platform. To force this, they put a multisignature schema in each
+account so if you were trying to send lumens to someone who was not a creator, they would not sign the transaction.</p>
+
+<p>Let&#39;s look next at the code to implement multisignature.</p>
+<h2 id='adding-signers-to-an-account'>Adding signers to an account</h2><pre class="highlight javascript tab-javascript"><code><span class="nx">async</span> <span class="kd">function</span> <span class="nx">addSigners</span><span class="p">(</span><span class="nx">keypair</span><span class="p">:</span> <span class="nx">Keypair</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">Network</span><span class="p">.</span><span class="nx">useTestNetwork</span><span class="p">();</span>
+  <span class="kr">const</span> <span class="nx">stellarServer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">);</span>
+
+  <span class="kr">const</span> <span class="nx">paymentsId</span> <span class="o">=</span> <span class="s1">'GCQOZGXMH6MI3JKWWO365BCXUJN6MFZR7XMKKCHGDY2K6JNCYFRH6M4C'</span>
+  <span class="kr">const</span> <span class="nx">adminId</span> <span class="o">=</span> <span class="s1">'GA6KTSHWU6GX6ER6HTWMGONS4VLQ4ZHONU6RKBGXTT7HFLV6NHX3ONAL'</span>
+
+  <span class="kr">const</span> <span class="nx">account</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">stellarServer</span><span class="p">.</span><span class="nx">loadAccount</span><span class="p">(</span><span class="nx">newAccountKeypair</span><span class="p">.</span><span class="nx">publicKey</span><span class="p">())</span>
+
+  <span class="kd">var</span> <span class="nx">transaction</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">account</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
+      <span class="nx">Operation</span><span class="p">.</span><span class="nx">setOptions</span><span class="p">({</span>
+        <span class="na">signer</span><span class="p">:</span> <span class="p">{</span>
+          <span class="na">ed25519PublicKey</span><span class="p">:</span> <span class="nx">paymentsId</span><span class="p">,</span>
+          <span class="na">weight</span><span class="p">:</span> <span class="mi">2</span>
+        <span class="p">}</span>
+      <span class="p">})</span>
+    <span class="p">)</span>
+    <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
+      <span class="nx">Operation</span><span class="p">.</span><span class="nx">setOptions</span><span class="p">({</span>
+        <span class="na">signer</span><span class="p">:</span> <span class="p">{</span>
+          <span class="na">ed25519PublicKey</span><span class="p">:</span> <span class="nx">adminId</span><span class="p">,</span>
+          <span class="na">weight</span><span class="p">:</span> <span class="mi">5</span>
+        <span class="p">}</span>
+      <span class="p">}))</span>
+    <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
+      <span class="nx">Operation</span><span class="p">.</span><span class="nx">setOptions</span><span class="p">({</span>
+        <span class="na">masterWeight</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// set master key weight to 0, it can't do anything</span>
+        <span class="na">lowThreshold</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="na">medThreshold</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="c1">// Allows  paymentsId to send payments</span>
+        <span class="na">highThreshold</span><span class="p">:</span> <span class="mi">5</span> <span class="c1">// Allows adminId to manage account</span>
+      <span class="p">}))</span>
+    <span class="p">.</span><span class="nx">build</span><span class="p">();</span>
+
+  <span class="nx">transaction</span><span class="p">.</span><span class="nx">sign</span><span class="p">(</span><span class="nx">keypair</span><span class="p">)</span>
+
+  <span class="kr">const</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">await</span> <span class="nx">server</span><span class="p">.</span><span class="nx">submitTransaction</span><span class="p">(</span><span class="nx">transaction</span><span class="p">)</span>
+
+<span class="p">}</span>
+</code></pre>
+<p>Let&#39;s assume you want to use account
+<code>GCQOZGXMH6MI3JKWWO365BCXUJN6MFZR7XMKKCHGDY2K6JNCYFRH6M4C</code> for signing
+payments and account
+<code>GA6KTSHWU6GX6ER6HTWMGONS4VLQ4ZHONU6RKBGXTT7HFLV6NHX3ONAL</code> to be the
+admin of all your users accunts.</p>
+
+<p>You will have to call the code on the right after creating the account
+in the ledger to change the signers schema.</p>
+
+<p><a href="https://github.com/abuiles/anchorx-api/pull/14">Pull request #14</a> shows you how to apply the multisignature schema above to anchorx-api.</p>
+<h2 id='managing-the-issuing-account'>Managing the issuing account</h2>
+<p>After issuing AnchorX&#39;s custom asset, you continue using the issuing
+account to create and authorize who could hold your asset. There is a
+security risk involved with this since if the issuing account gets
+compromised the attackers can create as many USD as they want.</p>
+
+<p>To manage this, you can follow the recommendation
+<a href="https://www.stellar.org/developers/guides/anchor/index.html#account-structure">here</a>
+which is to maintain two accounts, one for issuing and destroying
+assets and then a base account which we will hold a huge amount of
+your asset so it can credit people who transfer USD from their bank
+account to their AnchorX account. That way you can keep the secret key
+for the issuing account offline.</p>
+
+<p>Additionally, since you need the <code>allowTrust</code> operation, the you can
+add a signer with low threshold to the issuing account.</p>
+<h2 id='stellar-core-and-horizon'>Stellar Core and Horizon</h2>
+<p>For testing purposes it&#39;s fine to relay on the public test network run
+by the SDF, however if you are building your own service, you should
+be running your own nodes and horizon instance. You can learn more
+about it in the <a href="https://www.stellar.org/developers/guides/get-started/index.html">getting started
+guide</a>.</p>
+<h1 id='conclusion-3'>Conclusion</h1>
+<p>As mentioned at the beginning of the tutorial, the goal here was to
+show you a different approach to creating an anchor and at the same
+time help you get familiar with some concepts in Stellar. Don&#39;t take
+what I say here as written in stone, the requirements might be
+different for your particular situation, always do your
+research. There are other resources out there where you can go and ask
+questions like the <a href="https://slack.stellar.org/">Stellar community
+Slack</a> and the <a href="https://stellar.stackexchange.com/">Stellar Stack
+Exchange</a>. If there is something
+else you would like me to write about please let me know. I&#39;m looking
+forward to writing more about Stellar and helping you build awesome
+stuff on top of it.</p>
+
+<p>--Fin</p>
+
+<aside class="notice">
+If you enjoy this tutorial, tweet or tell your friends about it and if
+you want to support my writings, you can send XLM donations to the
+following Stellar address GBCFAMVYPJTXHVWRFP7VO6F4QE7B4UHAVJOEG5VR6VEB5M67GHQGEEAB
+</aside>
+
       </div>
       <div class="dark-box">
           <div class="lang-selector">
