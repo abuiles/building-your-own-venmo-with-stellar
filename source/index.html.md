@@ -252,9 +252,34 @@ After an user creates an account with AnchorX, the service will
 automatically provision a Stellar account and authorize the account to
 hold the anchor's asset.
 
-When a Stellar accounts decides to trust a given asset, they are
-creating a trustline between the account and the asset. Such operation
-has to be stored in the ledger. The code in the right shows a transaction creating a trustline between an `account` and an `asset`.
+[NOTE: Confussing. Too much new information: "ledger/trustline/trustor" and the code
+is not self contained as in the previous one. Is unclear what the code actually does
+since there are no expectations what the code should do.  What's the KYC process in
+the code?]
+
+[IDEAS:
+* Change title or make a dummy (user inputs name) to make it relevant.
+* Dumb-down and simplify the language.
+* Make the code self-contained (maybe use previous functions to get lummens and
+change the trustor. And input-output the difference. Explain what happened. (Clear
+expectation for the person following the tutorial)
+* Make it Venmo specific. This could make this section less abstract and more
+'concrete'
+]
+
+[SUGGESTION: I might be misunderstanding the example)
+
+When an asset comes to existance in Stellar we say one of the accounts "trusts" the
+asset. This is done by linking the account and asset. In the case of our Venmo clone
+(explain in venmo-concrete terms what we are doing) we need to link the "trustor" and
+the "issuer". This is accomplished through Stellar SDK operations changeTrust,
+allowTrust (explain what's the difference)
+]
+
+When a Stellar accounts decides to trust a given asset, they are creating a trustline
+between the account and the asset. Such operation has to be stored in the ledger. The
+code in the right shows a transaction creating a trustline between an `account` and
+an `asset`.
 
 ```javascript
 const asset = new StellarSdk.Asset(
@@ -262,6 +287,8 @@ const asset = new StellarSdk.Asset(
   'issuer-id'
 );
 
+# Is myAccount a string with the public key? or an object?
+# let's keep it with self-contained code. Makes it self-evident
 new StellarSdk
   .TransactionBuilder(myAccount)
   .addOperation(
@@ -277,7 +304,7 @@ the issuing account is authorizing a `trustor` to hold its asset with code `USD`
 
 ```javascript
 const trustor = 'some-stellar-address'
-
+# issuingAccount: obj? string?
 new StellarSdk.TransactionBuilder(issuingAccount)
   .addOperation(
     StellarSdk.Operation.allowTrust({
@@ -289,7 +316,12 @@ new StellarSdk.TransactionBuilder(issuingAccount)
   .build();
 ```
 
-For this example, `AnchorX` will be running both operations to allow accounts to transact with its asset.
+For this example, `AnchorX` will be running both operations to allow accounts to
+transact with its asset.
+
+
+
+[DONE]
 
 ### Credit from bank account
 
