@@ -261,13 +261,13 @@
               </ul>
           </li>
           <li>
-            <a href="#anchor-setup" class="toc-h1 toc-link" data-title="anchor-setup">Anchor Setup</a>
+            <a href="#mapping-venmo-to-stellar" class="toc-h1 toc-link" data-title="mapping-venmo-to-stellar">Mapping Venmo to Stellar</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#download-the-app-and-create-an-user" class="toc-h2 toc-link" data-title="download-the-app-and-create-an-user">Download the app and create an user.</a>
+                    <a href="#download-the-app-and-create-an-user" class="toc-h2 toc-link" data-title="download-the-app-and-create-an-user">Download the app and create an user</a>
                   </li>
                   <li>
-                    <a href="#go-through-kyc" class="toc-h2 toc-link" data-title="go-through-kyc">Go through KYC</a>
+                    <a href="#account-verification" class="toc-h2 toc-link" data-title="account-verification">Account verification</a>
                   </li>
                   <li>
                     <a href="#credit-from-bank-account" class="toc-h2 toc-link" data-title="credit-from-bank-account">Credit from bank account</a>
@@ -446,7 +446,7 @@ private key is the password. The private key is required to sign each
 transaction.</p>
 <h3 id='creating-accounts-in-the-test-network'>Creating accounts in the test network</h3>
 <blockquote>
-<p>For now we recommend running the code below on repl.it <a href="https://repl.it/@abuiles/CreateStellarAccount">https://repl.it/@abuiles/CreateStellarAccount</a></p>
+<p>For now, run the code below on repl.it <a href="https://repl.it/@abuiles/CreateStellarAccount">https://repl.it/@abuiles/CreateStellarAccount</a></p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">StellarSdk</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'stellar-sdk'</span><span class="p">)</span>
 <span class="kr">const</span> <span class="nx">fetch</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'node-fetch'</span><span class="p">)</span>
@@ -575,66 +575,30 @@ authorize the user to hold the asset. Once the user have been
 authorized they will be able to deposit USD or debit USD from their accounts.</p>
 
 <p>You can learn more about anchors in the SDF guides: <a href="https://www.stellar.org/developers/guides/anchor/">https://www.stellar.org/developers/guides/anchor/</a></p>
-<h1 id='anchor-setup'>Anchor Setup</h1>
+<h1 id='mapping-venmo-to-stellar'>Mapping Venmo to Stellar</h1>
 <p>The following is high level overview of what happens when you want to use Venmo:</p>
 
 <ol>
 <li>Download the app and create an user.</li>
-<li>Go through KYC with phone number, email and bank account verification.</li>
+<li>Go through phone number, email and bank account verification.</li>
 <li>Once you are authorized to use Venmo, transfer money from your bank account and send it to other Venmo users.</li>
 <li>Transfer to your bank whatever balance you have left.</li>
 </ol>
 
 <p>Let&#39;s translate the steps above to actions in AnchorX and then identify the requirements to setup the anchor.</p>
-<h3 id='download-the-app-and-create-an-user'>Download the app and create an user.</h3>
+<h3 id='download-the-app-and-create-an-user'>Download the app and create an user</h3>
 <p>Users should be able to download an app and then create an account. To
-keep things simple, I&#39;ll be using React-Native with Expo and then use
-a username (no password) as sign-up method.</p>
-<h3 id='go-through-kyc'>Go through KYC</h3>
-<p>In Venmo there is some level of KYC, since this is a toy example we
-won&#39;t be including any formal KYC process. By default every user will
-be marked as verified. In real life, you probably want to collect user
-data like SSN, driver&#39;s license, passport, proof of residence, etc.</p>
-
-<p>After an user creates an account with AnchorX, the service will
-automatically provision a Stellar account and authorize the account to
-hold the anchor&#39;s asset.</p>
-
-<p>When a Stellar accounts decides to trust a given asset, they are
-creating a trustline between the account and the asset. Such operation
-has to be stored in the ledger. The code in the right shows a transaction creating a trustline between an <code>account</code> and an <code>asset</code>.</p>
-<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">asset</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">StellarSdk</span><span class="p">.</span><span class="nx">Asset</span><span class="p">(</span>
-  <span class="s1">'USD'</span><span class="p">,</span>
-  <span class="s1">'issuer-id'</span>
-<span class="p">);</span>
-
-<span class="k">new</span> <span class="nx">StellarSdk</span>
-  <span class="p">.</span><span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">myAccount</span><span class="p">)</span>
-  <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
-    <span class="nx">StellarSdk</span><span class="p">.</span><span class="nx">Operation</span><span class="p">.</span><span class="nx">changeTrust</span><span class="p">({</span>
-      <span class="nx">asset</span>
-    <span class="p">}))</span>
-  <span class="p">.</span><span class="nx">build</span><span class="p">();</span>
-</code></pre>
-<p>Likewise, when the asset issuer requires authorization by them before people can hold their asset. It needs to happen in an operation.
-The code shows an operation where the issuing account is authorizing a <code>trustor</code> to hold its asset with code <code>USD</code>.</p>
-<pre class="highlight javascript tab-javascript"><code><span class="kr">const</span> <span class="nx">trustor</span> <span class="o">=</span> <span class="s1">'some-stellar-address'</span>
-
-<span class="k">new</span> <span class="nx">StellarSdk</span><span class="p">.</span><span class="nx">TransactionBuilder</span><span class="p">(</span><span class="nx">issuingAccount</span><span class="p">)</span>
-  <span class="p">.</span><span class="nx">addOperation</span><span class="p">(</span>
-    <span class="nx">StellarSdk</span><span class="p">.</span><span class="nx">Operation</span><span class="p">.</span><span class="nx">allowTrust</span><span class="p">({</span>
-      <span class="nx">trustor</span><span class="p">,</span>
-      <span class="na">assetCode</span><span class="p">:</span> <span class="s1">'USD'</span><span class="p">,</span>
-      <span class="na">authorize</span><span class="p">:</span> <span class="kc">true</span>
-    <span class="p">})</span>
-  <span class="p">)</span>
-  <span class="p">.</span><span class="nx">build</span><span class="p">();</span>
-</code></pre>
-<p>For this example, <code>AnchorX</code> will be running both operations to allow accounts to transact with its asset.</p>
+keep things the application will use username (no password) for
+sign-up/sign-in.</p>
+<h3 id='account-verification'>Account verification</h3>
+<p>In Venmo there is a verification process, since this is a toy example
+you won&#39;t be including that. By default every user will be marked as
+verified. In real application, you probably want to collect user data
+like SSN, driver&#39;s license, passport, proof of residence, etc.</p>
 <h3 id='credit-from-bank-account'>Credit from bank account</h3>
 <p>The app will have a section which will simulate transferring from your bank account.</p>
 <h3 id='p2p-payments'>P2P payments</h3>
-<p>Once the account has been provisioned and have some Dollars, users should be able to send money to other users in AnchorX</p>
+<p>Once the account has been provisioned and have some Dollars, users should be able to send money to other users.</p>
 <h3 id='transfer-balance-from-anchorx-to-bank-account'>Transfer balance from AnchorX to Bank account</h3>
 <p>The app will have a section for depositing their dollars to their bank account.</p>
 <h1 id='building-the-backend'>Building the backend</h1>
@@ -1534,7 +1498,7 @@ tutorial includes a boilerplate project which has all the basics already setup.<
 
 <p>In this chapter you will learn how to use the streaming mode to update the account balance.</p>
 
-<p>In the following GIF you can see how we need to refresh the app to see the balance updated.</p>
+<p>In the following GIF you can see how you need to refresh the app to see the balance updated.</p>
 
 <p><img src="https://d3vv6lp55qjaqc.cloudfront.net/items/0L3N0S2D223l3K1S3a2r/Screen%20Recording%202018-07-19%20at%2009.44%20AM.gif?X-CloudApp-Visitor-Id=49274&amp;v=e537cac7" alt="Screen%20recording%202018 07 19%20at%2009.44%20am" /></p>
 <pre class="highlight javascript"><code><span class="nx">mutation</span> <span class="p">{</span>
@@ -1710,7 +1674,7 @@ You can find the documentation for the account builder <a href="https://stellar.
     <span class="nx">Network</span><span class="p">.</span><span class="nx">useTestNetwork</span><span class="p">()</span>
     <span class="kr">const</span> <span class="nx">server</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">(</span><span class="s1">'https://horizon-testnet.stellar.org'</span><span class="p">)</span>
 
-    <span class="c1">// Notice how we are using PaymentOperationRecord from @types/stellar-sdk</span>
+    <span class="c1">// Notice how you can use PaymentOperationRecord from @types/stellar-sdk</span>
     <span class="kd">let</span> <span class="nx">handleMessage</span> <span class="o">=</span> <span class="p">(</span><span class="na">payment</span><span class="p">:</span> <span class="nx">PaymentOperationRecord</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
       <span class="kr">const</span> <span class="p">{</span> <span class="nx">asset</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">props</span>
       <span class="kr">const</span> <span class="p">{</span> <span class="nx">payments</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
@@ -2168,7 +2132,7 @@ compromised the attackers can create as many USD as they want.</p>
 <p>To manage this, you can follow the recommendation
 <a href="https://www.stellar.org/developers/guides/anchor/index.html#account-structure">here</a>
 which is to maintain two accounts, one for issuing and destroying
-assets and then a base account which we will hold a huge amount of
+assets and then a base account which will hold a huge amount of
 your asset so it can credit people who transfer USD from their bank
 account to their AnchorX account. That way you can keep the secret key
 for the issuing account offline.</p>
