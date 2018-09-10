@@ -54,4 +54,4 @@ Special Thanks
 - [middleman-syntax](https://github.com/middleman/middleman-syntax)
 - [middleman-gh-pages](https://github.com/edgecase/middleman-gh-pages)
 - [Font Awesome](http://fortawesome.github.io/Font-Awesome/)
-- [Diego Echeverry for the valuable feedback as an editor](https://twitter.com/diegoeche)
+- [Diego Echeverri for the valuable feedback as an editor](https://twitter.com/diegoeche)
