@@ -163,7 +163,7 @@ Assets still feel a bit abstract. On the right you can find a concrete example o
 It contains the following assets:
 
 - EURT: Asset issued by [Tempo](http://tempo.eu.com/) a remittances company.
-- ETH: This asset represents Ether, you send real `ETH` to [http://papaya.io/](http://papaya.io/) and they credit your Stellar account with their `ETH`.
+- ETH: This asset represents Ether, you send real `ETH` to [https://apay.io/](https://apay.io/) and they credit your Stellar account with their `ETH`.
 - USD: Asset representing `Dollars`, issued by [Stronghold](https://stronghold.co/).
 - native: Native asset of the network, it represents `Lumens`.
 
