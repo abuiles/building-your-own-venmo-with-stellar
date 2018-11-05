@@ -57,6 +57,12 @@ under the License.
         });
       });
     </script>
+    <style>
+    .remotehqad{
+      background-color: #F3F7F9 !important;
+      border: 4px solid #2E3336 !important;
+    }
+    </style>
   </head>
 
   <body class="<%= page_classes %>" data-languages="<%=h language_tabs.map{ |lang| lang.is_a?(Hash) ? lang.keys.first : lang }.to_json %>">
@@ -107,6 +113,7 @@ under the License.
             <li><%= footer %></li>
           <% end %>
         </ul>
+        <script async="" type="text/javascript" src="https://blog.abuiles.com/assets/js/remotehqads.js" id="_remotehqads_js"></script>
       <% end %>
     </div>
     <div class="page-wrapper">
